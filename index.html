@@ -363,18 +363,73 @@ body.quiz-open .app{max-width:none;padding:0}
 .completion-box h2{margin:0 0 8px;color:var(--blue2);font-size:1.75rem}
 .completion-box p{color:var(--muted);line-height:1.5;margin:0 auto;max-width:560px}
 .completion-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.current-block-badge{
+  display:none;
+  width:max-content;
+  margin:0 0 12px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:var(--red);
+  border:1px solid rgba(255,255,255,.55);
+  color:#fff;
+  font-size:.76rem;
+  font-weight:950;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  box-shadow:0 6px 16px rgba(0,0,0,.18);
+}
+.current-block-badge.show{display:inline-flex;align-items:center;gap:6px}
+.block-completion-card{border-top-color:var(--blue);padding-bottom:12px}
+.block-completion-card .completion-icon{background:var(--red)}
+.missed-review{
+  margin:22px auto 0;
+  max-width:700px;
+  text-align:left;
+  display:grid;
+  gap:10px;
+}
+.missed-review-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--red2);
+  font-weight:950;
+  font-size:1rem;
+}
+.missed-count{
+  min-width:30px;height:30px;padding:0 9px;border-radius:999px;
+  background:var(--red);color:#fff;display:inline-flex;align-items:center;justify-content:center;
+}
+.missed-item{
+  position:relative;
+  background:#fff7f8;
+  border:1px solid #efb9c2;
+  border-left:6px solid var(--red);
+  border-radius:12px;
+  padding:14px 14px 13px 44px;
+}
+.missed-flag{position:absolute;left:14px;top:14px;font-size:1.15rem}
+.missed-item h4{margin:0 0 9px;color:var(--blue2);font-size:.94rem;line-height:1.4}
+.missed-item p{margin:5px 0;color:#42516a;font-size:.84rem;line-height:1.4}
+.missed-item .wrong-answer{color:var(--red2)}
+.missed-item .right-answer{color:var(--blue)}
 .keyboard-hint{text-align:center;margin-top:12px;color:#d8e5ff;font-size:.72rem}
 
 
 .resume-card{display:block}
+.resume-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.resume-card-head>div{min-width:0}
+.resume-card-head .btn{flex:0 0 auto}
 .resume-list{display:grid;gap:10px;margin-top:12px}
 .resume-entry{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
 }
-.resume-entry div{min-width:0}
+.resume-entry>div:first-child{min-width:0}
 .resume-entry b{display:block;color:var(--blue2);margin-bottom:3px}
 .resume-entry span{display:block;color:var(--muted);font-size:.82rem;line-height:1.35}
+.resume-entry-actions{display:flex;gap:8px;align-items:center;flex:0 0 auto}
 .manual-card{grid-column:span 12;border-top:5px solid var(--red)}
 .manual-card h3{margin-top:0;color:var(--blue2)}
 .manual-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:10px;margin:14px 0}
@@ -392,7 +447,10 @@ body.quiz-open .app{max-width:none;padding:0}
 #importProgressInput{display:none}
 @media(max-width:760px){
   .manual-grid{grid-template-columns:1fr}
+  .resume-card-head{flex-direction:column}
   .resume-entry{align-items:flex-start;flex-direction:column}
+  .resume-entry-actions{width:100%}
+  .resume-entry-actions .btn{flex:1}
 }
 
 @media(max-width:820px){
@@ -471,8 +529,13 @@ body.quiz-open .app{max-width:none;padding:0}
       </div>
 
       <div id="resumeCard" class="card resume-card" style="display:none">
-        <h3>Continue Saved Sessions</h3>
-        <p class="manual-help">Mastery training, quick practice, Exam 1, and Exam 2 save independently.</p>
+        <div class="resume-card-head">
+          <div>
+            <h3>Continue Saved Sessions</h3>
+            <p class="manual-help">Mastery training, quick practice, Exam 1, and Exam 2 save independently. Deleting a saved session does not erase mastered-question progress.</p>
+          </div>
+          <button class="btn warn" onclick="deleteAllSavedSessions()">Delete All Saved Sessions</button>
+        </div>
         <div id="resumeList" class="resume-list"></div>
       </div>
 
@@ -558,6 +621,7 @@ body.quiz-open .app{max-width:none;padding:0}
               <div class="quiz-mode-title" id="modeLabel">Learn</div>
               <div class="autosave-status" id="autosaveStatus">Autosave ready</div>
             </div>
+            <div class="current-block-badge" id="currentBlockBadge"></div>
             <div class="focus-progress">
               <div class="progress-bubble" id="progressBubble">0</div>
               <div class="segment-progress" id="sectionSegments"></div>
@@ -581,7 +645,7 @@ body.quiz-open .app{max-width:none;padding:0}
             <button id="dontKnowBtn" class="dont-know" onclick="answerChoice(-1,null)">Don't know?</button>
           </div>
         </div>
-        <div class="keyboard-hint">Use number keys 1–4 to answer • Space or Enter to continue</div>
+        <div class="keyboard-hint" id="keyboardHint">Use number keys 1–4 to answer • Space or Enter to continue</div>
       </div>
       <div class="quiz-bottom">
         <button class="continue-btn" id="nextBtn" onclick="continueSession()" style="display:none">Continue <span aria-hidden="true" style="opacity:.75;font-size:.78em">(Space)</span></button>
@@ -605,9 +669,10 @@ const SESSION_KEYS={
   learn:'hvac608SessionLearnV6',
   quick:'hvac608SessionQuickV6',
   exam1:'hvac608SessionExam1V6',
-  exam2:'hvac608SessionExam2V6'
+  exam2:'hvac608SessionExam2V6',
+  missed:'hvac608SessionMissedV7'
 };
-const SESSION_VERSION=6;
+const SESSION_VERSION=7;
 const EXAM_CATEGORIES=['Core','Type I','Type II','Type III'];
 
 let libraryMode='questions';
@@ -739,6 +804,8 @@ function normalizeSession(raw){
   if(raw.version===5){
     const migratedMode=raw.mode==='mock'?'quick':raw.mode;
     raw={...raw,version:SESSION_VERSION,mode:migratedMode,choiceOrder:null,lastChoiceOrders:{}};
+  }else if(raw.version===6){
+    raw={...raw,version:SESSION_VERSION};
   }
   if(raw.version!==SESSION_VERSION||!SESSION_KEYS[raw.mode])return null;
   if(!Array.isArray(raw.queueIds)||!Array.isArray(raw.blockIds))return null;
@@ -753,6 +820,9 @@ function normalizeSession(raw){
   raw.answerState=raw.answerState||null;
   raw.pendingRequeue=!!raw.pendingRequeue;
   raw.blockCorrect=Array.isArray(raw.blockCorrect)?raw.blockCorrect:[];
+  raw.missedIds=Array.isArray(raw.missedIds)?[...new Set(raw.missedIds.filter(id=>questionById(id)))]:[];
+  raw.missedAnswers=raw.missedAnswers&&typeof raw.missedAnswers==='object'?raw.missedAnswers:{};
+  raw.sourceMode=typeof raw.sourceMode==='string'?raw.sourceMode:null;
   raw.score=Number(raw.score)||0;
   raw.answered=Number(raw.answered)||0;
   raw.total=Number(raw.total)||raw.blockIds.length;
@@ -804,7 +874,9 @@ function clearSession(mode=session?.mode){
 function modeTitle(mode){
   return mode==='learn'?'Mastery Training':
     mode==='quick'?'Quick Quiz':
-    mode==='exam1'?'Practice Exam 1':'Practice Exam 2';
+    mode==='exam1'?'Practice Exam 1':
+    mode==='exam2'?'Practice Exam 2':
+    mode==='missed'?'Missed-Question Mini Exam':'EPA 608 Practice';
 }
 function showSection(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -839,13 +911,36 @@ function updateResumeCard(){
     const detail=document.createElement('span');
     detail.textContent=describeSavedSession(saved);
     info.append(title,detail);
-    const button=document.createElement('button');
-    button.className='btn primary';
-    button.textContent='Continue';
-    button.onclick=()=>resumeSession(saved.mode);
-    row.append(info,button);
+    const actions=document.createElement('div');
+    actions.className='resume-entry-actions';
+    const continueButton=document.createElement('button');
+    continueButton.className='btn primary';
+    continueButton.textContent='Continue';
+    continueButton.onclick=()=>resumeSession(saved.mode);
+    const deleteButton=document.createElement('button');
+    deleteButton.className='btn warn';
+    deleteButton.textContent='Delete';
+    deleteButton.onclick=()=>deleteSavedSession(saved.mode);
+    actions.append(continueButton,deleteButton);
+    row.append(info,actions);
     list.appendChild(row);
   });
+}
+function deleteSavedSession(mode){
+  const saved=loadValidSession(mode);
+  if(!saved){updateResumeCard();return}
+  if(!confirm(`Delete the saved ${modeTitle(mode)} session? This will not erase mastered-question progress.`))return;
+  clearSession(mode);
+}
+function deleteAllSavedSessions(){
+  const modesWithSaves=Object.keys(SESSION_KEYS).filter(mode=>loadValidSession(mode));
+  if(!modesWithSaves.length){updateResumeCard();return}
+  if(!confirm(`Delete all ${modesWithSaves.length} saved session${modesWithSaves.length===1?'':'s'}? This will not erase mastered-question progress, category selections, or overall practice statistics.`))return;
+  Object.values(SESSION_KEYS).forEach(key=>{try{localStorage.removeItem(key)}catch(e){}});
+  try{localStorage.removeItem(OLD_SESSION_KEY)}catch(e){}
+  try{localStorage.removeItem(LEGACY_SESSION_KEY)}catch(e){}
+  if(session&&SESSION_KEYS[session.mode])session=null;
+  updateResumeCard();
 }
 function resumeSession(mode){
   restoreQuizCardMarkup();
@@ -866,7 +961,8 @@ function baseSession(mode,cats,ids){
     version:SESSION_VERSION,mode,cats:[...cats],
     blockIds:[...ids],queueIds:[...ids],currentId:null,
     choiceOrder:null,lastChoiceOrders:{},answerState:null,pendingRequeue:false,
-    blockCorrect:[],score:0,answered:0,total:ids.length,fullTotal:ids.length,
+    blockCorrect:[],missedIds:[],missedAnswers:{},sourceMode:null,
+    score:0,answered:0,total:ids.length,fullTotal:ids.length,
     manualOffset:0,completed:false,savedAt:new Date().toISOString()
   };
 }
@@ -917,6 +1013,15 @@ function createFixedExamSession(number,startIndex=0){
   created.manualResume=start>0;
   return created;
 }
+function createMissedExamSession(ids,sourceMode='exam1'){
+  const unique=[...new Set((ids||[]).filter(id=>questionById(id)))];
+  if(!unique.length)return null;
+  const cats=[...new Set(unique.map(id=>questionById(id)?.category).filter(Boolean))];
+  const created=baseSession('missed',cats,unique);
+  created.sourceMode=sourceMode;
+  created.fullTotal=unique.length;
+  return created;
+}
 function startLearn(){
   restoreQuizCardMarkup();
   const saved=loadValidSession('learn');
@@ -948,6 +1053,18 @@ function startExam(number){
   advanceToQuestion();
 }
 function startMock(){startExam(1)}
+function startMissedExam(){
+  const ids=[...(session?.missedIds||[])];
+  const sourceMode=session?.mode||session?.sourceMode||'exam1';
+  if(!ids.length){alert('There are no missed questions to review.');return}
+  clearSession('missed');
+  restoreQuizCardMarkup();
+  session=createMissedExamSession(ids,sourceMode);
+  if(!session)return;
+  saveSession();
+  showSection('quiz');
+  advanceToQuestion();
+}
 
 function hasLetterDependentChoice(q){
   return q.choices.some(choice=>{
@@ -1041,26 +1158,58 @@ function renderSegments(){
   document.getElementById('progressBubble').textContent=session.mode==='learn'?(session.blockCorrect||[]).length:(session.answered||0);
   document.getElementById('progressTotal').textContent=session.total;
 }
+function learnBlockInfo(target=session){
+  const cats=target?.cats?.length?target.cats:selectedCats();
+  const bank=filteredBank(cats);
+  let absoluteIndex=Number(target?.manualOffset)||0;
+  if(!target?.manualResume){
+    const anchorId=target?.blockIds?.[0];
+    const found=bank.findIndex(q=>q.id===anchorId);
+    if(found>=0)absoluteIndex=found;
+  }
+  const number=Math.floor(Math.max(0,absoluteIndex)/SECTION_SIZE)+1;
+  return {number,total:Math.max(1,Math.ceil(bank.length/SECTION_SIZE)),absoluteIndex,bank};
+}
+function hasMoreLearnQuestions(target=session){
+  const info=learnBlockInfo(target);
+  const mastered=masteredSet();
+  return info.bank.some(q=>!mastered.has(q.id));
+}
 function questionPositionText(){
   if(session.mode.startsWith('exam')){
     const absolute=Math.min(session.fullTotal,(session.manualOffset||0)+(session.answered||0)+1);
     return `Exam question ${absolute} of ${session.fullTotal}`;
   }
-  if(session.mode==='learn'&&session.manualResume){
-    const absolute=Math.min(session.fullTotal,(session.manualOffset||0)+(session.blockCorrect||[]).length+1);
-    return `Bank question ${absolute} • ${Math.min(session.total,(session.blockCorrect||[]).length+1)} of ${session.total} in this resumed block`;
+  if(session.mode==='learn'){
+    const info=learnBlockInfo();
+    const position=Math.min(session.total,(session.blockCorrect||[]).length+1);
+    if(session.manualResume){
+      const absolute=Math.min(session.fullTotal,(session.manualOffset||0)+(session.blockCorrect||[]).length+1);
+      return `Block ${info.number} • Bank question ${absolute} • ${position} of ${session.total}`;
+    }
+    return `Block ${info.number} • Question ${position} of ${session.total}`;
   }
-  const position=session.mode==='learn'
-    ?Math.min(session.total,(session.blockCorrect||[]).length+1)
-    :Math.min(session.total,(session.answered||0)+1);
+  const position=Math.min(session.total,(session.answered||0)+1);
   return `Question ${position} of ${session.total}`;
 }
 function renderSession(){
   if(!session)return;
+  const keyboardHint=document.getElementById('keyboardHint');
+  if(keyboardHint)keyboardHint.textContent='Use number keys 1–4 to answer • Space or Enter to continue';
+  const bottom=document.querySelector('.quiz-bottom');
+  if(bottom)bottom.style.display='flex';
   document.getElementById('modeLabel').textContent=modeTitle(session.mode);
-  document.getElementById('learnStatusTop').textContent=
-    session.mode==='learn'?'10-question mastery block':
-    session.mode.startsWith('exam')?'25 Core • 25 Type I • 25 Type II • 25 Type III':'No-repeat randomized practice';
+  const blockBadge=document.getElementById('currentBlockBadge');
+  if(session.mode==='learn'){
+    const info=learnBlockInfo();
+    document.getElementById('learnStatusTop').textContent=`Mastery Block ${info.number} of ${info.total}`;
+    if(blockBadge){blockBadge.textContent=`Current Block ${info.number} of ${info.total}`;blockBadge.classList.add('show')}
+  }else{
+    document.getElementById('learnStatusTop').textContent=
+      session.mode.startsWith('exam')?'25 Core • 25 Type I • 25 Type II • 25 Type III':
+      session.mode==='missed'?'Only questions missed on the previous attempt':'No-repeat randomized practice';
+    if(blockBadge){blockBadge.textContent='';blockBadge.classList.remove('show')}
+  }
   renderSegments();
   if(session.completed){renderCompletion();return}
   currentQuestion=questionById(session.currentId);
@@ -1109,6 +1258,12 @@ function answerChoice(displayIndex,button){
   session.pendingRequeue=session.mode==='learn'&&!correct;
   session.answered=(session.answered||0)+1;
   if(correct)session.score=(session.score||0)+1;
+  if((session.mode.startsWith('exam')||session.mode==='missed')&&!correct){
+    session.missedIds=session.missedIds||[];
+    session.missedAnswers=session.missedAnswers||{};
+    if(!session.missedIds.includes(currentQuestion.id))session.missedIds.push(currentQuestion.id);
+    session.missedAnswers[currentQuestion.id]=originalIndex;
+  }
 
   const stats=getStats();
   stats.answered++;
@@ -1169,6 +1324,30 @@ function finishSession(){
   renderCompletion();
   updateHome();
 }
+function missedReviewHTML(target=session){
+  const ids=target?.missedIds||[];
+  if(!ids.length)return '';
+  const rows=ids.map((id,index)=>{
+    const q=questionById(id);
+    if(!q)return '';
+    const examPosition=(target.blockIds||[]).indexOf(id);
+    const label=target.mode.startsWith('exam')&&examPosition>=0?`Exam Question ${examPosition+1}`:`Missed Question ${index+1}`;
+    const selected=target.missedAnswers?.[id];
+    const selectedText=selected===-1?'Don\'t know':
+      Number.isInteger(selected)&&q.choices[selected]!==undefined?q.choices[selected]:'No answer recorded';
+    const correctText=q.answerText||q.choices[q.answer];
+    return `<div class="missed-item">
+      <span class="missed-flag" aria-hidden="true">⚑</span>
+      <h4>${escapeHTML(label)} — ${escapeHTML(q.question)}</h4>
+      <p class="wrong-answer"><b>Your answer:</b> ${escapeHTML(selectedText)}</p>
+      <p class="right-answer"><b>Correct answer:</b> ${escapeHTML(correctText)}</p>
+    </div>`;
+  }).join('');
+  return `<div class="missed-review">
+    <div class="missed-review-head"><span>Flagged Missed Questions</span><span class="missed-count">${ids.length}</span></div>
+    ${rows}
+  </div>`;
+}
 function renderCompletion(){
   document.getElementById('modeLabel').textContent=modeTitle(session.mode);
   document.getElementById('qCategory').textContent='';
@@ -1178,28 +1357,64 @@ function renderCompletion(){
   document.getElementById('explanation').style.display='none';
   document.getElementById('dontKnowBtn').style.display='none';
   document.getElementById('nextBtn').style.display='none';
+  const bottom=document.querySelector('.quiz-bottom');
+  if(bottom)bottom.style.display='none';
+  const blockBadge=document.getElementById('currentBlockBadge');
+  if(blockBadge){blockBadge.textContent='';blockBadge.classList.remove('show')}
   renderSegments();
 
   const card=document.getElementById('quizCard');
   const isLearn=session.mode==='learn';
-  const resumedExam=session.mode.startsWith('exam')&&session.manualOffset>0;
-  const scoreText=isLearn
-    ?`All ${session.total} questions in this block have been mastered.`
-    :`You answered ${session.score} of ${session.total} attempted questions correctly (${Math.round((session.score/session.total)*100)||0}%).${resumedExam?` This manual resume began at exam question ${session.manualOffset+1}, so earlier answers are not included in this score.`:''}`;
+  const isExam=session.mode.startsWith('exam');
+  const isMissed=session.mode==='missed';
+  const missedCount=(session.missedIds||[]).length;
+  const keyboardHint=document.getElementById('keyboardHint');
+  const resumedExam=isExam&&session.manualOffset>0;
+
+  if(isLearn){
+    const info=learnBlockInfo();
+    const more=hasMoreLearnQuestions();
+    if(keyboardHint)keyboardHint.textContent=more
+      ?`Press Space again to continue to Mastery Block ${info.number+1}`
+      :'All selected mastery blocks are complete';
+    card.classList.add('block-completion-card');
+    card.innerHTML=`
+      <div class="completion-box">
+        <div class="completion-icon">✓</div>
+        <h2>Congrats on mastering Block ${info.number}!</h2>
+        <p>All ${session.total} questions in this block have been mastered.</p>
+        <div class="completion-actions">
+          ${more?`<button class="btn primary" onclick="startNextBlock()">Continue to Block ${info.number+1} <span aria-hidden="true" style="opacity:.76">(Space)</span></button>`:''}
+          <button class="btn" onclick="finishAndGoHome()">Return Home</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  card.classList.remove('block-completion-card');
+  if(keyboardHint)keyboardHint.textContent=missedCount
+    ?'Review every flagged question below or take the missed-question mini exam'
+    :'Practice complete • No missed questions remain';
+  const scoreText=`You answered ${session.score} of ${session.total} attempted questions correctly (${Math.round((session.score/session.total)*100)||0}%).${resumedExam?` This manual resume began at exam question ${session.manualOffset+1}, so earlier answers are not included in this score.`:''}`;
+  const title=isMissed?'Mini exam complete':'Practice exam complete';
   card.innerHTML=`
     <div class="completion-box">
-      <div class="completion-icon">✓</div>
-      <h2>${isLearn?'Mastery block complete':'Practice complete'}</h2>
+      <div class="completion-icon">${missedCount?'⚑':'✓'}</div>
+      <h2>${title}</h2>
       <p>${escapeHTML(scoreText)}</p>
+      ${missedReviewHTML()}
       <div class="completion-actions">
-        ${isLearn?'<button class="btn primary" onclick="startNextBlock()">Start Next 10</button>':''}
-        ${session.mode.startsWith('exam')?`<button class="btn primary" onclick="restartExam(${session.examNumber})">Restart Full Exam</button>`:''}
+        ${missedCount?`<button class="btn primary" onclick="startMissedExam()">${isMissed?'Retake Remaining Missed Questions':'Take Missed-Question Mini Exam'} (${missedCount})</button>`:''}
+        ${isExam?`<button class="btn" onclick="restartExam(${session.examNumber})">Restart Full Exam</button>`:''}
         <button class="btn" onclick="finishAndGoHome()">Return Home</button>
       </div>
     </div>`;
 }
 function restoreQuizCardMarkup(){
   const card=document.getElementById('quizCard');
+  card.classList.remove('block-completion-card');
+  const bottom=document.querySelector('.quiz-bottom');
+  if(bottom)bottom.style.display='flex';
   if(document.getElementById('qText'))return;
   card.innerHTML=`
     <div class="term-label">Question <span id="qCategory"></span></div>
@@ -1212,6 +1427,10 @@ function restoreQuizCardMarkup(){
     </div>`;
 }
 function startNextBlock(){
+  if(!hasMoreLearnQuestions()){
+    finishAndGoHome();
+    return;
+  }
   clearSession('learn');
   restoreQuizCardMarkup();
   startLearn();
@@ -1451,6 +1670,12 @@ document.addEventListener('keydown',event=>{
   if(typing)return;
   const quizActive=document.getElementById('quiz').classList.contains('active');
   if(!quizActive)return;
+  if(event.repeat&&(event.code==='Space'||event.key==='Enter'))return;
+  if(event.code==='Space'&&session?.completed&&session.mode==='learn'&&hasMoreLearnQuestions()){
+    event.preventDefault();
+    startNextBlock();
+    return;
+  }
   const next=document.getElementById('nextBtn');
   if((event.code==='Space'||event.key==='Enter')&&next&&next.style.display!=='none'){
     event.preventDefault();
