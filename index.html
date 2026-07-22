@@ -1,10 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="/EPA/icon.png?v=2">
-<link rel="icon" type="image/png" href="/EPA/icon.png?v=2">
-<meta name="apple-mobile-web-app-title" content="EPA 608">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>HVAC/R EPA 608 Master Study Tool</title>
@@ -369,6 +365,36 @@ body.quiz-open .app{max-width:none;padding:0}
 .completion-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
 .keyboard-hint{text-align:center;margin-top:12px;color:#d8e5ff;font-size:.72rem}
 
+
+.resume-card{display:block}
+.resume-list{display:grid;gap:10px;margin-top:12px}
+.resume-entry{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#f7f9fc;border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+}
+.resume-entry div{min-width:0}
+.resume-entry b{display:block;color:var(--blue2);margin-bottom:3px}
+.resume-entry span{display:block;color:var(--muted);font-size:.82rem;line-height:1.35}
+.manual-card{grid-column:span 12;border-top:5px solid var(--red)}
+.manual-card h3{margin-top:0;color:var(--blue2)}
+.manual-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:10px;margin:14px 0}
+.manual-field{display:grid;gap:6px}
+.manual-field label{font-size:.78rem;font-weight:900;color:var(--blue2)}
+.manual-help{color:var(--muted);font-size:.86rem;line-height:1.48;margin:0}
+.manual-options{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 12px}
+.manual-check{display:flex;align-items:flex-start;gap:8px;color:var(--blue2);font-size:.86rem;font-weight:750}
+.manual-check input{margin-top:3px;accent-color:var(--red)}
+.backup-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.exam-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.exam-breakdown{font-size:.8rem;color:var(--muted);margin-top:8px}
+.section-dot{cursor:pointer;transition:.15s ease}
+.section-dot:hover{transform:translateY(-1px);border-color:var(--blue);color:var(--blue2)}
+#importProgressInput{display:none}
+@media(max-width:760px){
+  .manual-grid{grid-template-columns:1fr}
+  .resume-entry{align-items:flex-start;flex-direction:column}
+}
+
 @media(max-width:820px){
   .hero{grid-template-columns:1fr}
   .navcard{grid-column:span 6}
@@ -409,7 +435,8 @@ body.quiz-open .app{max-width:none;padding:0}
         <button class="btn" onclick="showSection('home')">Home</button>
         <button class="btn" onclick="startLearn()">Learn</button>
         <button class="btn" onclick="startQuick()">Quick Quiz</button>
-        <button class="btn warn" onclick="startMock()">Mock Exam</button>
+        <button class="btn warn" onclick="startExam(1)">Exam 1</button>
+        <button class="btn warn" onclick="startExam(2)">Exam 2</button>
         <button class="btn" onclick="resetAllProgress()">Reset</button>
       </div>
     </div>
@@ -420,7 +447,7 @@ body.quiz-open .app{max-width:none;padding:0}
       <div class="card hero">
         <div>
           <h2>Master the EPA 608 question bank.</h2>
-          <p>Study in focused 10-question mastery blocks. Correct answers leave the block, missed questions return later, and every answer is saved immediately so you can resume without redoing completed work.</p>
+          <p>Study in focused 10-question mastery blocks. Missed questions return later with safely rearranged answer positions, each study mode keeps its own autosave, and manual resume controls let you restart from any block or question.</p>
           <button class="btn primary" onclick="startLearn()">Start Mastery Training</button>
         </div>
         <div class="stats">
@@ -444,17 +471,47 @@ body.quiz-open .app{max-width:none;padding:0}
       </div>
 
       <div id="resumeCard" class="card resume-card" style="display:none">
-        <div>
-          <h3>Continue Your Saved Session</h3>
-          <p id="resumeText">Resume exactly where you left off.</p>
-        </div>
-        <button class="btn primary" onclick="resumeSession()">Continue</button>
+        <h3>Continue Saved Sessions</h3>
+        <p class="manual-help">Mastery training, quick practice, Exam 1, and Exam 2 save independently.</p>
+        <div id="resumeList" class="resume-list"></div>
       </div>
 
       <div class="card progress-card">
         <h3>10-Question Block Progress</h3>
-        <div class="notice">Each block contains up to 10 questions from the selected EPA categories. A correct answer permanently masters that question. A missed question moves to the back of the same block until answered correctly.</div>
+        <div class="notice">Each block contains up to 10 questions from the selected EPA categories. A missed question moves to the back of the same block and returns with a new safe answer arrangement. Click any numbered block to load it into Manual Resume.</div>
         <div id="sectionGrid" class="section-grid"></div>
+      </div>
+
+      <div id="manualResumeCard" class="card manual-card">
+        <h3>Manual Resume or Jump</h3>
+        <p id="manualHelp" class="manual-help">Choose any mastery block and exact question. This gives you a manual recovery point even when the browser loses its saved session.</p>
+        <div class="manual-grid">
+          <div class="manual-field">
+            <label for="manualMode">Study mode</label>
+            <select id="manualMode" class="select" onchange="updateManualControls()">
+              <option value="learn">Mastery Training</option>
+              <option value="exam1">Practice Exam 1</option>
+              <option value="exam2">Practice Exam 2</option>
+            </select>
+          </div>
+          <div class="manual-field">
+            <label for="manualBlock">10-question block</label>
+            <select id="manualBlock" class="select" onchange="updateManualQuestions()"></select>
+          </div>
+          <div class="manual-field">
+            <label for="manualQuestion">Exact starting question</label>
+            <select id="manualQuestion" class="select"></select>
+          </div>
+        </div>
+        <div id="manualMasteryOptions" class="manual-options">
+          <label class="manual-check"><input id="manualMarkEarlier" type="checkbox"> Mark every earlier selected mastery question complete before starting here</label>
+        </div>
+        <button class="btn primary" onclick="startManualResume()">Start at Selected Question</button>
+        <div class="backup-row">
+          <button class="btn" onclick="exportProgress()">Export Progress Backup</button>
+          <button class="btn" onclick="document.getElementById('importProgressInput').click()">Import Progress Backup</button>
+          <input id="importProgressInput" type="file" accept="application/json,.json" onchange="importProgress(event)">
+        </div>
       </div>
 
       <div class="card navcard">
@@ -465,9 +522,16 @@ body.quiz-open .app{max-width:none;padding:0}
         <div><h3>Top 100 Refrigeration Components</h3><p>A searchable supplemental guide with functions, locations, symptoms, common problems, and checks.</p></div>
         <div><span class="count" id="guideCount">0</span><br><button class="btn" onclick="openComponents()">Open</button></div>
       </div>
-      <div class="card navcard">
-        <div><h3>50-Question Mock Exam</h3><p>A randomized exam using only the certification categories currently selected.</p></div>
-        <div><span class="count">50</span><br><button class="btn warn" onclick="startMock()">Start</button></div>
+      <div class="card navcard" id="examCard">
+        <div><h3>Two Unique 100-Question Exams</h3><p>Each fixed exam contains 25 Core, 25 Type I, 25 Type II, and 25 Type III questions. No question wording is shared between Exam 1 and Exam 2.</p></div>
+        <div>
+          <span class="count">2 × 100</span>
+          <div class="exam-actions">
+            <button class="btn warn" onclick="startExam(1)">Exam 1</button>
+            <button class="btn warn" onclick="startExam(2)">Exam 2</button>
+          </div>
+          <div class="exam-breakdown">25 questions from each certification type per exam</div>
+        </div>
       </div>
     </div>
   </section>
@@ -533,9 +597,18 @@ const QUESTIONS=[{"id":"P18C-E1","category":"Core","section":"Clean Air Act And 
 
 const MASTERED_KEY='hvac608MasteredV3';
 const CATEGORY_KEY='hvac608CatsV3';
-const SESSION_KEY='hvac608QuizletSessionV5';
-const STATS_KEY='hvac608QuizletStatsV5';
+const STATS_KEY='hvac608QuizletStatsV6';
+const OLD_STATS_KEY='hvac608QuizletStatsV5';
+const OLD_SESSION_KEY='hvac608QuizletSessionV5';
 const LEGACY_SESSION_KEY='hvac608SessionV4';
+const SESSION_KEYS={
+  learn:'hvac608SessionLearnV6',
+  quick:'hvac608SessionQuickV6',
+  exam1:'hvac608SessionExam1V6',
+  exam2:'hvac608SessionExam2V6'
+};
+const SESSION_VERSION=6;
+const EXAM_CATEGORIES=['Core','Type I','Type II','Type III'];
 
 let libraryMode='questions';
 let session=null;
@@ -566,26 +639,32 @@ function saveJSON(key,value){
 }
 function masteredSet(){
   const value=loadJSON(MASTERED_KEY,[]);
-  if(Array.isArray(value))return new Set(value);
-  if(value&&typeof value==='object')return new Set(Object.keys(value).filter(k=>value[k]));
+  if(Array.isArray(value))return new Set(value.filter(id=>questionById(id)));
+  if(value&&typeof value==='object')return new Set(Object.keys(value).filter(k=>value[k]&&questionById(k)));
   return new Set();
 }
-function saveMastered(set){saveJSON(MASTERED_KEY,[...set])}
+function saveMastered(set){return saveJSON(MASTERED_KEY,[...set])}
 function getStats(){
-  const s=loadJSON(STATS_KEY,{answered:0,correct:0});
+  const fallback=loadJSON(OLD_STATS_KEY,{answered:0,correct:0});
+  const s=loadJSON(STATS_KEY,fallback);
   return {answered:Number(s.answered)||0,correct:Number(s.correct)||0};
 }
-function saveStats(stats){saveJSON(STATS_KEY,stats)}
+function saveStats(stats){return saveJSON(STATS_KEY,stats)}
 function selectedCats(){
   return [...document.querySelectorAll('.catPick:checked')].map(el=>el.value);
 }
 function saveCategories(){
   saveJSON(CATEGORY_KEY,selectedCats());
   updateHome();
+  updateManualControls(true);
 }
 function loadCategories(){
   const saved=loadJSON(CATEGORY_KEY,['Core','Type I','Type II','Type III']);
   document.querySelectorAll('.catPick').forEach(el=>el.checked=saved.includes(el.value));
+}
+function setSelectedCats(cats){
+  document.querySelectorAll('.catPick').forEach(el=>el.checked=(cats||[]).includes(el.value));
+  saveJSON(CATEGORY_KEY,selectedCats());
 }
 function selectAllCats(){
   document.querySelectorAll('.catPick').forEach(el=>el.checked=true);
@@ -606,120 +685,243 @@ function shuffle(arr){
   }
   return copy;
 }
+function seededShuffle(arr,seed){
+  const copy=[...arr];
+  let state=seed>>>0;
+  const random=()=>{
+    state=(1664525*state+1013904223)>>>0;
+    return state/4294967296;
+  };
+  for(let i=copy.length-1;i>0;i--){
+    const j=Math.floor(random()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy;
+}
+function normalizedQuestionText(q){
+  return String(q.question||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+function buildFixedExamSets(){
+  const usedTexts=new Set();
+  const sets={exam1:[],exam2:[]};
+  EXAM_CATEGORIES.forEach(category=>{
+    const unique=[];
+    const seen=new Set();
+    QUESTIONS.filter(q=>q.category===category).forEach(q=>{
+      const key=normalizedQuestionText(q);
+      if(!seen.has(key)){seen.add(key);unique.push(q)}
+    });
+    if(unique.length<50)throw new Error(`Not enough unique ${category} questions for two exams.`);
+    const first=unique.slice(0,25);
+    const second=unique.slice(25,50);
+    first.forEach(q=>usedTexts.add(normalizedQuestionText(q)));
+    second.forEach(q=>{
+      const key=normalizedQuestionText(q);
+      if(usedTexts.has(key))throw new Error('Duplicate question wording found between fixed exams.');
+      usedTexts.add(key);
+    });
+    sets.exam1.push(...first.map(q=>q.id));
+    sets.exam2.push(...second.map(q=>q.id));
+  });
+  sets.exam1=seededShuffle(sets.exam1,60801);
+  sets.exam2=seededShuffle(sets.exam2,60802);
+  return sets;
+}
+const FIXED_EXAMS=buildFixedExamSets();
+
+function sessionKey(mode){return SESSION_KEYS[mode]||null}
+function validChoiceOrder(order,q){
+  return Array.isArray(order)&&order.length===q.choices.length&&
+    [...order].sort((a,b)=>a-b).every((value,index)=>value===index);
+}
+function normalizeSession(raw){
+  if(!raw||typeof raw!=='object')return null;
+  if(raw.version===5){
+    const migratedMode=raw.mode==='mock'?'quick':raw.mode;
+    raw={...raw,version:SESSION_VERSION,mode:migratedMode,choiceOrder:null,lastChoiceOrders:{}};
+  }
+  if(raw.version!==SESSION_VERSION||!SESSION_KEYS[raw.mode])return null;
+  if(!Array.isArray(raw.queueIds)||!Array.isArray(raw.blockIds))return null;
+  const ids=[...raw.blockIds,...raw.queueIds,raw.currentId].filter(Boolean);
+  if(ids.some(id=>!questionById(id)))return null;
+  if(!Array.isArray(raw.cats))raw.cats=raw.mode.startsWith('exam')?[...EXAM_CATEGORIES]:[];
+  if(!raw.lastChoiceOrders||typeof raw.lastChoiceOrders!=='object')raw.lastChoiceOrders={};
+  if(raw.currentId){
+    const q=questionById(raw.currentId);
+    if(!validChoiceOrder(raw.choiceOrder,q))raw.choiceOrder=null;
+  }else raw.choiceOrder=null;
+  raw.answerState=raw.answerState||null;
+  raw.pendingRequeue=!!raw.pendingRequeue;
+  raw.blockCorrect=Array.isArray(raw.blockCorrect)?raw.blockCorrect:[];
+  raw.score=Number(raw.score)||0;
+  raw.answered=Number(raw.answered)||0;
+  raw.total=Number(raw.total)||raw.blockIds.length;
+  raw.fullTotal=Number(raw.fullTotal)||raw.total;
+  raw.manualOffset=Number(raw.manualOffset)||0;
+  raw.completed=!!raw.completed;
+  return raw;
+}
+function loadValidSession(mode){
+  const key=sessionKey(mode);
+  if(!key)return null;
+  let raw=normalizeSession(loadJSON(key,null));
+  if(raw)return raw;
+  const old=normalizeSession(loadJSON(OLD_SESSION_KEY,null));
+  if(old&&old.mode===mode){
+    saveJSON(key,old);
+    try{localStorage.removeItem(OLD_SESSION_KEY)}catch(e){}
+    return old;
+  }
+  return null;
+}
+function savedSessions(){
+  return Object.keys(SESSION_KEYS).map(mode=>loadValidSession(mode)).filter(Boolean);
+}
+function saveSession(){
+  if(!session)return false;
+  session.savedAt=new Date().toISOString();
+  const success=saveJSON(sessionKey(session.mode),session);
+  const status=document.getElementById('autosaveStatus');
+  if(status){
+    status.textContent=success?'Saved just now':'Save failed — use Export Progress Backup';
+    status.style.color=success?'':'#ffd3d8';
+    clearTimeout(saveSession._timer);
+    if(success)saveSession._timer=setTimeout(()=>{
+      if(status){status.textContent='Autosave active';status.style.color=''}
+    },1400);
+  }
+  updateResumeCard();
+  return success;
+}
+function clearSession(mode=session?.mode){
+  const key=sessionKey(mode);
+  if(key&&storageAvailable()){
+    try{localStorage.removeItem(key)}catch(e){}
+  }
+  if(session?.mode===mode)session=null;
+  updateResumeCard();
+}
+function modeTitle(mode){
+  return mode==='learn'?'Mastery Training':
+    mode==='quick'?'Quick Quiz':
+    mode==='exam1'?'Practice Exam 1':'Practice Exam 2';
+}
 function showSection(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   const target=document.getElementById(id);
   if(target)target.classList.add('active');
   document.body.classList.toggle('quiz-open',id==='quiz');
-  if(id==='home'){
-    session=loadValidSession();
-    updateHome();
-  }
+  if(id==='home')updateHome();
   window.scrollTo(0,0);
 }
-function loadValidSession(){
-  const raw=loadJSON(SESSION_KEY,null);
-  if(!raw||raw.version!==5||!Array.isArray(raw.cats)||!raw.mode)return null;
-  const validModes=['learn','quick','mock'];
-  if(!validModes.includes(raw.mode))return null;
-  const ids=[...(raw.blockIds||[]),...(raw.queueIds||[]),raw.currentId].filter(Boolean);
-  if(ids.some(id=>!questionById(id)))return null;
-  return raw;
-}
-function saveSession(){
-  if(!session)return;
-  session.savedAt=new Date().toISOString();
-  saveJSON(SESSION_KEY,session);
-  const status=document.getElementById('autosaveStatus');
-  if(status){
-    status.textContent='Saved just now';
-    clearTimeout(saveSession._timer);
-    saveSession._timer=setTimeout(()=>{if(status)status.textContent='Autosave active'},1400);
+function describeSavedSession(saved){
+  const remaining=(saved.queueIds?.length||0)+(saved.currentId?1:0);
+  if(saved.mode.startsWith('exam')){
+    const absolute=(saved.manualOffset||0)+(saved.answered||0)+1;
+    return `${remaining} remaining • next exam position approximately ${Math.min(saved.fullTotal||100,absolute)} of ${saved.fullTotal||100}`;
   }
-  updateResumeCard();
-}
-function clearSession(){
-  session=null;
-  if(storageAvailable())localStorage.removeItem(SESSION_KEY);
-  updateResumeCard();
-}
-function modeTitle(mode){
-  return mode==='learn'?'Mastery Training':mode==='quick'?'Quick Quiz':'50-Question Mock Exam';
+  if(saved.mode==='learn')return `${remaining} active • ${(saved.blockCorrect||[]).length} mastered in this block`;
+  return `${remaining} remaining • ${saved.score||0} correct so far`;
 }
 function updateResumeCard(){
   const card=document.getElementById('resumeCard');
-  if(!card)return;
-  const saved=loadValidSession();
-  const compatible=saved&&!saved.completed&&sameCats(saved.cats,selectedCats());
-  card.style.display=compatible?'grid':'none';
-  if(compatible){
-    const remaining=(saved.queueIds?.length||0)+(saved.currentId?1:0);
-    document.getElementById('resumeText').textContent=
-      `${modeTitle(saved.mode)} is saved with ${remaining} question${remaining===1?'':'s'} still active. Continue from the exact answer screen where you stopped.`;
-  }
+  const list=document.getElementById('resumeList');
+  if(!card||!list)return;
+  const saves=savedSessions().filter(saved=>!saved.completed);
+  card.style.display=saves.length?'block':'none';
+  list.innerHTML='';
+  saves.forEach(saved=>{
+    const row=document.createElement('div');
+    row.className='resume-entry';
+    const info=document.createElement('div');
+    const title=document.createElement('b');
+    title.textContent=modeTitle(saved.mode);
+    const detail=document.createElement('span');
+    detail.textContent=describeSavedSession(saved);
+    info.append(title,detail);
+    const button=document.createElement('button');
+    button.className='btn primary';
+    button.textContent='Continue';
+    button.onclick=()=>resumeSession(saved.mode);
+    row.append(info,button);
+    list.appendChild(row);
+  });
 }
-function resumeSession(){
+function resumeSession(mode){
   restoreQuizCardMarkup();
-  const saved=loadValidSession();
-  if(!saved||saved.completed||!sameCats(saved.cats,selectedCats())){
-    clearSession();
-    startLearn();
+  const saved=loadValidSession(mode);
+  if(!saved||saved.completed){
+    clearSession(mode);
     return;
   }
   session=saved;
+  if((mode==='learn'||mode==='quick')&&saved.cats.length)setSelectedCats(saved.cats);
   currentQuestion=questionById(session.currentId);
   showSection('quiz');
-  renderSession();
+  if(session.currentId)renderSession();
+  else advanceToQuestion();
 }
-function createLearnSession(){
+function baseSession(mode,cats,ids){
+  return {
+    version:SESSION_VERSION,mode,cats:[...cats],
+    blockIds:[...ids],queueIds:[...ids],currentId:null,
+    choiceOrder:null,lastChoiceOrders:{},answerState:null,pendingRequeue:false,
+    blockCorrect:[],score:0,answered:0,total:ids.length,fullTotal:ids.length,
+    manualOffset:0,completed:false,savedAt:new Date().toISOString()
+  };
+}
+function createLearnSession(options={}){
   const cats=selectedCats();
   if(!cats.length){alert('Select at least one certification category.');return null}
-  const mastered=masteredSet();
   const bank=filteredBank(cats);
+  if(Number.isInteger(options.absoluteIndex)){
+    const absolute=Math.max(0,Math.min(bank.length-1,options.absoluteIndex));
+    if(options.markEarlier){
+      const mastered=masteredSet();
+      bank.slice(0,absolute).forEach(q=>mastered.add(q.id));
+      saveMastered(mastered);
+    }
+    const blockStart=Math.floor(absolute/SECTION_SIZE)*SECTION_SIZE;
+    const blockEnd=Math.min(bank.length,blockStart+SECTION_SIZE);
+    const chosen=bank.slice(absolute,blockEnd);
+    if(!chosen.length)return null;
+    const created=baseSession('learn',cats,chosen.map(q=>q.id));
+    created.fullTotal=bank.length;
+    created.manualOffset=absolute;
+    created.manualResume=true;
+    return created;
+  }
+  const mastered=masteredSet();
   const unmastered=bank.filter(q=>!mastered.has(q.id));
   if(!unmastered.length){alert('All questions in the selected categories are mastered.');return null}
-  const block=unmastered.slice(0,SECTION_SIZE);
-  return {
-    version:5,mode:'learn',cats,
-    blockIds:block.map(q=>q.id),
-    queueIds:block.map(q=>q.id),
-    currentId:null,
-    answerState:null,
-    pendingRequeue:false,
-    blockCorrect:[],
-    score:0,
-    answered:0,
-    total:block.length,
-    completed:false,
-    savedAt:new Date().toISOString()
-  };
+  return baseSession('learn',cats,unmastered.slice(0,SECTION_SIZE).map(q=>q.id));
 }
-function createQuizSession(mode,count){
+function createQuizSession(count){
   const cats=selectedCats();
   if(!cats.length){alert('Select at least one certification category.');return null}
-  const bank=shuffle(filteredBank(cats));
-  const chosen=bank.slice(0,Math.min(count,bank.length));
-  return {
-    version:5,mode,cats,
-    blockIds:chosen.map(q=>q.id),
-    queueIds:chosen.map(q=>q.id),
-    currentId:null,
-    answerState:null,
-    pendingRequeue:false,
-    blockCorrect:[],
-    score:0,
-    answered:0,
-    total:chosen.length,
-    completed:false,
-    savedAt:new Date().toISOString()
-  };
+  const chosen=shuffle(filteredBank(cats)).slice(0,Math.min(count,filteredBank(cats).length));
+  return baseSession('quick',cats,chosen.map(q=>q.id));
+}
+function createFixedExamSession(number,startIndex=0){
+  const mode=`exam${number}`;
+  const allIds=FIXED_EXAMS[mode];
+  const start=Math.max(0,Math.min(allIds.length-1,Number(startIndex)||0));
+  const remaining=allIds.slice(start);
+  const created=baseSession(mode,EXAM_CATEGORIES,remaining);
+  created.blockIds=[...allIds];
+  created.queueIds=[...remaining];
+  created.total=remaining.length;
+  created.fullTotal=allIds.length;
+  created.manualOffset=start;
+  created.examNumber=number;
+  created.manualResume=start>0;
+  return created;
 }
 function startLearn(){
   restoreQuizCardMarkup();
-  const saved=loadValidSession();
-  if(saved&&!saved.completed&&saved.mode==='learn'&&sameCats(saved.cats,selectedCats())){
-    session=saved;
-  }else{
+  const saved=loadValidSession('learn');
+  if(saved&&!saved.completed&&sameCats(saved.cats,selectedCats()))session=saved;
+  else{
     session=createLearnSession();
     if(!session)return;
   }
@@ -728,43 +930,86 @@ function startLearn(){
 }
 function startQuick(){
   restoreQuizCardMarkup();
-  const saved=loadValidSession();
-  if(saved&&!saved.completed&&saved.mode==='quick'&&sameCats(saved.cats,selectedCats())){
-    session=saved;
-  }else{
-    session=createQuizSession('quick',10);
+  const saved=loadValidSession('quick');
+  if(saved&&!saved.completed&&sameCats(saved.cats,selectedCats()))session=saved;
+  else{
+    session=createQuizSession(10);
     if(!session)return;
   }
   showSection('quiz');
   advanceToQuestion();
 }
-function startMock(){
+function startExam(number){
   restoreQuizCardMarkup();
-  const saved=loadValidSession();
-  if(saved&&!saved.completed&&saved.mode==='mock'&&sameCats(saved.cats,selectedCats())){
-    session=saved;
-  }else{
-    session=createQuizSession('mock',50);
-    if(!session)return;
-  }
+  const mode=`exam${number}`;
+  const saved=loadValidSession(mode);
+  session=saved&&!saved.completed?saved:createFixedExamSession(number,0);
   showSection('quiz');
   advanceToQuestion();
+}
+function startMock(){startExam(1)}
+
+function hasLetterDependentChoice(q){
+  return q.choices.some(choice=>{
+    const text=String(choice);
+    return /\b(?:both|either|neither)\s+[A-D]\s+(?:and|or)\s+[A-D]\b/i.test(text)||
+      /\b[A-D]\s*(?:and|or)\s*[A-D]\b/.test(text);
+  });
+}
+function fixedChoicePositions(q){
+  const fixed=[];
+  q.choices.forEach((choice,index)=>{
+    const text=String(choice);
+    if(/\b(?:all|none)\s+(?:of\s+)?the\s+(?:above|below)\b/i.test(text)||
+       /\ball\s+(?:answers|choices)\s+(?:are\s+)?(?:correct|equal)\b/i.test(text))fixed.push(index);
+  });
+  return fixed;
+}
+function sameOrder(a,b){
+  return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((v,i)=>v===b[i]);
+}
+function makeChoiceOrder(q,lastOrder){
+  const base=q.choices.map((_,index)=>index);
+  if(base.length<2||hasLetterDependentChoice(q))return base;
+  const fixed=new Set(fixedChoicePositions(q));
+  const movablePositions=base.filter(index=>!fixed.has(index));
+  if(movablePositions.length<2)return base;
+  let candidate=base;
+  for(let attempt=0;attempt<20;attempt++){
+    const shuffled=shuffle(movablePositions);
+    candidate=[...base];
+    movablePositions.forEach((position,i)=>candidate[position]=shuffled[i]);
+    if(!sameOrder(candidate,lastOrder)&&!sameOrder(candidate,base))return candidate;
+  }
+  const rotated=[...movablePositions.slice(1),movablePositions[0]];
+  candidate=[...base];
+  movablePositions.forEach((position,i)=>candidate[position]=rotated[i]);
+  return candidate;
+}
+function ensureChoiceOrder(){
+  if(!session||!currentQuestion)return;
+  if(validChoiceOrder(session.choiceOrder,currentQuestion))return;
+  const last=session.lastChoiceOrders?.[currentQuestion.id]||null;
+  session.choiceOrder=makeChoiceOrder(currentQuestion,last);
+  session.lastChoiceOrders=session.lastChoiceOrders||{};
+  session.lastChoiceOrders[currentQuestion.id]=[...session.choiceOrder];
 }
 function advanceToQuestion(){
   if(!session)return;
   if(session.currentId){
     currentQuestion=questionById(session.currentId);
+    ensureChoiceOrder();
+    saveSession();
     renderSession();
     return;
   }
-  if(!session.queueIds.length){
-    finishSession();
-    return;
-  }
+  if(!session.queueIds.length){finishSession();return}
   session.currentId=session.queueIds.shift();
   session.answerState=null;
   session.pendingRequeue=false;
+  session.choiceOrder=null;
   currentQuestion=questionById(session.currentId);
+  ensureChoiceOrder();
   saveSession();
   renderSession();
 }
@@ -772,7 +1017,7 @@ function progressValues(){
   if(!session)return {done:0,total:10,current:0};
   if(session.mode==='learn'){
     const done=(session.blockCorrect||[]).length;
-    return {done,total:session.total,current:Math.min(done,session.total-1)};
+    return {done,total:session.total,current:Math.min(done,Math.max(0,session.total-1))};
   }
   const done=session.answered||0;
   return {done,total:session.total,current:Math.min(done,Math.max(0,session.total-1))};
@@ -783,7 +1028,7 @@ function renderSegments(){
   const {done,total}=progressValues();
   const segments=10;
   const fraction=total?done/total:0;
-  const completedSegments=Math.floor(fraction*segments);
+  const completedSegments=Math.min(segments,Math.floor(fraction*segments));
   const currentSegment=Math.min(segments-1,completedSegments);
   box.innerHTML='';
   for(let i=0;i<segments;i++){
@@ -796,52 +1041,71 @@ function renderSegments(){
   document.getElementById('progressBubble').textContent=session.mode==='learn'?(session.blockCorrect||[]).length:(session.answered||0);
   document.getElementById('progressTotal').textContent=session.total;
 }
+function questionPositionText(){
+  if(session.mode.startsWith('exam')){
+    const absolute=Math.min(session.fullTotal,(session.manualOffset||0)+(session.answered||0)+1);
+    return `Exam question ${absolute} of ${session.fullTotal}`;
+  }
+  if(session.mode==='learn'&&session.manualResume){
+    const absolute=Math.min(session.fullTotal,(session.manualOffset||0)+(session.blockCorrect||[]).length+1);
+    return `Bank question ${absolute} • ${Math.min(session.total,(session.blockCorrect||[]).length+1)} of ${session.total} in this resumed block`;
+  }
+  const position=session.mode==='learn'
+    ?Math.min(session.total,(session.blockCorrect||[]).length+1)
+    :Math.min(session.total,(session.answered||0)+1);
+  return `Question ${position} of ${session.total}`;
+}
 function renderSession(){
   if(!session)return;
   document.getElementById('modeLabel').textContent=modeTitle(session.mode);
   document.getElementById('learnStatusTop').textContent=
-    session.mode==='learn'?'10-question mastery block':'No-repeat randomized practice';
+    session.mode==='learn'?'10-question mastery block':
+    session.mode.startsWith('exam')?'25 Core • 25 Type I • 25 Type II • 25 Type III':'No-repeat randomized practice';
   renderSegments();
-  if(session.completed){
-    renderCompletion();
-    return;
-  }
+  if(session.completed){renderCompletion();return}
   currentQuestion=questionById(session.currentId);
   if(!currentQuestion){advanceToQuestion();return}
+  ensureChoiceOrder();
   answerLocked=!!session.answerState;
   document.getElementById('qCategory').textContent=`${currentQuestion.category} · ${currentQuestion.section||'EPA 608'}`;
   document.getElementById('qText').textContent=currentQuestion.question;
-  const position=session.mode==='learn'
-    ?Math.min(session.total,(session.blockCorrect||[]).length+1)
-    :Math.min(session.total,(session.answered||0)+1);
-  document.getElementById('qCounter').textContent=`Question ${position} of ${session.total}`;
+  document.getElementById('qCounter').textContent=questionPositionText();
   document.getElementById('learnStatus').className='learn-status';
   document.getElementById('learnStatus').textContent='Choose an answer';
   const choices=document.getElementById('choices');
   choices.innerHTML='';
-  currentQuestion.choices.forEach((choice,index)=>{
+  session.choiceOrder.forEach((originalIndex,displayIndex)=>{
     const btn=document.createElement('button');
     btn.className='choice';
-    btn.innerHTML=`<span class="choice-number">${index+1}</span>${escapeHTML(choice)}`;
-    btn.onclick=()=>answerChoice(index,btn);
+    btn.innerHTML=`<span class="choice-number">${displayIndex+1}</span>${escapeHTML(currentQuestion.choices[originalIndex])}`;
+    btn.onclick=()=>answerChoice(displayIndex,btn);
     choices.appendChild(btn);
   });
   const explanation=document.getElementById('explanation');
   explanation.style.display='none';
   explanation.innerHTML='';
   document.getElementById('nextBtn').style.display='none';
+  document.getElementById('dontKnowBtn').style.display='inline-block';
   document.getElementById('dontKnowBtn').disabled=false;
-  document.getElementById('autosaveStatus').textContent='Autosave active';
+  const autosave=document.getElementById('autosaveStatus');
+  autosave.textContent=storageAvailable()?'Autosave active':'Browser storage unavailable — export backups manually';
+  autosave.style.color=storageAvailable()?'':'#ffd3d8';
   if(session.answerState)applyAnswerState();
 }
 function escapeHTML(value){
   return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 }
-function answerChoice(index,button){
+function answerChoice(displayIndex,button){
   if(answerLocked||!session||!currentQuestion)return;
   answerLocked=true;
-  const correct=index===currentQuestion.answer;
-  session.answerState={selected:index,correct,correctIndex:currentQuestion.answer};
+  const originalIndex=displayIndex<0?-1:session.choiceOrder[displayIndex];
+  const correct=originalIndex===currentQuestion.answer;
+  session.answerState={
+    selectedDisplay:displayIndex,
+    selectedOriginal:originalIndex,
+    correct,
+    correctOriginal:currentQuestion.answer
+  };
   session.pendingRequeue=session.mode==='learn'&&!correct;
   session.answered=(session.answered||0)+1;
   if(correct)session.score=(session.score||0)+1;
@@ -866,17 +1130,18 @@ function applyAnswerState(){
   answerLocked=true;
   const state=session.answerState;
   const buttons=[...document.querySelectorAll('#choices .choice')];
-  buttons.forEach((btn,index)=>{
+  buttons.forEach((btn,displayIndex)=>{
+    const originalIndex=session.choiceOrder[displayIndex];
     btn.disabled=true;
-    if(index===currentQuestion.answer)btn.classList.add('correct');
-    if(index===state.selected&&index!==currentQuestion.answer)btn.classList.add('wrong');
+    if(originalIndex===currentQuestion.answer)btn.classList.add('correct');
+    if(displayIndex===state.selectedDisplay&&originalIndex!==currentQuestion.answer)btn.classList.add('wrong');
   });
   const correct=state.correct;
   const status=document.getElementById('learnStatus');
   status.className=`learn-status ${correct?'good':'bad'}`;
   status.textContent=correct
     ?(session.mode==='learn'?'Correct — this question is now mastered.':'Correct.')
-    :(session.mode==='learn'?'Not yet — it will return later in this block.':'Incorrect.');
+    :(session.mode==='learn'?'Not yet — it will return later with a new answer arrangement.':'Incorrect.');
   const explanation=document.getElementById('explanation');
   explanation.style.display='block';
   explanation.innerHTML=`<b>${correct?'Correct':'Correct answer'}:</b> ${escapeHTML(currentQuestion.answerText||currentQuestion.choices[currentQuestion.answer])}${currentQuestion.explanation?`<br>${escapeHTML(currentQuestion.explanation)}`:''}`;
@@ -886,10 +1151,9 @@ function applyAnswerState(){
 }
 function continueSession(){
   if(!session||!session.answerState)return;
-  if(session.mode==='learn'&&session.pendingRequeue&&session.currentId){
-    session.queueIds.push(session.currentId);
-  }
+  if(session.mode==='learn'&&session.pendingRequeue&&session.currentId)session.queueIds.push(session.currentId);
   session.currentId=null;
+  session.choiceOrder=null;
   session.answerState=null;
   session.pendingRequeue=false;
   saveSession();
@@ -899,6 +1163,7 @@ function finishSession(){
   if(!session)return;
   session.completed=true;
   session.currentId=null;
+  session.choiceOrder=null;
   session.answerState=null;
   saveSession();
   renderCompletion();
@@ -917,9 +1182,10 @@ function renderCompletion(){
 
   const card=document.getElementById('quizCard');
   const isLearn=session.mode==='learn';
+  const resumedExam=session.mode.startsWith('exam')&&session.manualOffset>0;
   const scoreText=isLearn
     ?`All ${session.total} questions in this block have been mastered.`
-    :`You answered ${session.score} of ${session.total} questions correctly (${Math.round((session.score/session.total)*100)||0}%).`;
+    :`You answered ${session.score} of ${session.total} attempted questions correctly (${Math.round((session.score/session.total)*100)||0}%).${resumedExam?` This manual resume began at exam question ${session.manualOffset+1}, so earlier answers are not included in this score.`:''}`;
   card.innerHTML=`
     <div class="completion-box">
       <div class="completion-icon">✓</div>
@@ -927,6 +1193,7 @@ function renderCompletion(){
       <p>${escapeHTML(scoreText)}</p>
       <div class="completion-actions">
         ${isLearn?'<button class="btn primary" onclick="startNextBlock()">Start Next 10</button>':''}
+        ${session.mode.startsWith('exam')?`<button class="btn primary" onclick="restartExam(${session.examNumber})">Restart Full Exam</button>`:''}
         <button class="btn" onclick="finishAndGoHome()">Return Home</button>
       </div>
     </div>`;
@@ -945,21 +1212,29 @@ function restoreQuizCardMarkup(){
     </div>`;
 }
 function startNextBlock(){
-  clearSession();
+  clearSession('learn');
   restoreQuizCardMarkup();
   startLearn();
 }
+function restartExam(number){
+  clearSession(`exam${number}`);
+  restoreQuizCardMarkup();
+  session=createFixedExamSession(number,0);
+  showSection('quiz');
+  advanceToQuestion();
+}
 function finishAndGoHome(){
-  clearSession();
+  const finishedMode=session?.mode;
+  if(finishedMode)clearSession(finishedMode);
   restoreQuizCardMarkup();
   showSection('home');
 }
+
 function openQuestions(){
   libraryMode='questions';
   document.getElementById('libraryTitle').textContent='EPA 608 Question Bank';
   const filter=document.getElementById('filter');
-  filter.innerHTML='<option value="">All categories</option>'+
-    ['Core','Type I','Type II','Type III'].map(c=>`<option>${c}</option>`).join('');
+  filter.innerHTML='<option value="">All categories</option>'+['Core','Type I','Type II','Type III'].map(c=>`<option>${c}</option>`).join('');
   document.getElementById('search').value='';
   showSection('library');
   renderLibrary();
@@ -969,8 +1244,7 @@ function openComponents(){
   document.getElementById('libraryTitle').textContent='Top 100 Refrigeration Components';
   const categories=[...new Set(COMPONENTS.map(c=>c.cat))].sort();
   const filter=document.getElementById('filter');
-  filter.innerHTML='<option value="">All categories</option>'+
-    categories.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
+  filter.innerHTML='<option value="">All categories</option>'+categories.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
   document.getElementById('search').value='';
   showSection('library');
   renderLibrary();
@@ -1020,13 +1294,8 @@ function updateHome(){
   document.getElementById('guideCount').textContent=COMPONENTS.length;
   document.getElementById('masteredStat').textContent=masteredSelected;
   document.getElementById('remainingStat').textContent=Math.max(0,bank.length-masteredSelected);
-  const counts=['Core','Type I','Type II','Type III']
-    .filter(c=>cats.includes(c))
-    .map(c=>`${c}: ${QUESTIONS.filter(q=>q.category===c).length}`)
-    .join(' • ');
-  document.getElementById('catSummary').textContent=cats.length
-    ?`${bank.length} questions selected • ${counts}`
-    :'No categories selected.';
+  const counts=EXAM_CATEGORIES.filter(c=>cats.includes(c)).map(c=>`${c}: ${QUESTIONS.filter(q=>q.category===c).length}`).join(' • ');
+  document.getElementById('catSummary').textContent=cats.length?`${bank.length} questions selected • ${counts}`:'No categories selected.';
   renderSectionGrid(bank,mastered);
   updateResumeCard();
 }
@@ -1038,22 +1307,143 @@ function renderSectionGrid(bank,mastered){
   for(let i=0;i<total;i++){
     const block=bank.slice(i*SECTION_SIZE,(i+1)*SECTION_SIZE);
     const done=block.length>0&&block.every(q=>mastered.has(q.id));
-    const dot=document.createElement('div');
+    const dot=document.createElement('button');
+    dot.type='button';
     dot.className='section-dot';
     if(done)dot.classList.add('done');
     else if(!currentFound){dot.classList.add('current');currentFound=true}
     dot.textContent=i+1;
-    dot.title=`Block ${i+1}: ${block.filter(q=>mastered.has(q.id)).length} of ${block.length} mastered`;
+    dot.title=`Block ${i+1}: ${block.filter(q=>mastered.has(q.id)).length} of ${block.length} mastered. Click to select this manual resume block.`;
+    dot.onclick=()=>selectManualBlock(i);
     grid.appendChild(dot);
   }
 }
+function manualBank(mode=document.getElementById('manualMode')?.value||'learn'){
+  if(mode==='exam1'||mode==='exam2')return FIXED_EXAMS[mode].map(questionById).filter(Boolean);
+  return filteredBank();
+}
+function updateManualControls(preserveBlock=false){
+  const mode=document.getElementById('manualMode');
+  const blockSelect=document.getElementById('manualBlock');
+  const options=document.getElementById('manualMasteryOptions');
+  const help=document.getElementById('manualHelp');
+  if(!mode||!blockSelect)return;
+  const bank=manualBank(mode.value);
+  const oldBlock=preserveBlock?Number(blockSelect.value)||0:0;
+  blockSelect.innerHTML='';
+  const blocks=Math.ceil(bank.length/SECTION_SIZE);
+  for(let i=0;i<blocks;i++){
+    const start=i*SECTION_SIZE+1;
+    const finish=Math.min(bank.length,(i+1)*SECTION_SIZE);
+    const option=document.createElement('option');
+    option.value=i;
+    option.textContent=`Block ${i+1} — Questions ${start}–${finish}`;
+    blockSelect.appendChild(option);
+  }
+  blockSelect.value=String(Math.min(oldBlock,Math.max(0,blocks-1)));
+  const isLearn=mode.value==='learn';
+  options.style.display=isLearn?'flex':'none';
+  help.textContent=isLearn
+    ?'Choose any mastery block and exact question. The optional checkbox reconstructs your prior location by marking every earlier selected question mastered.'
+    :'Choose any exact exam position. A manual exam resume scores only the remaining questions because earlier answers cannot be reconstructed after data loss.';
+  updateManualQuestions();
+}
+function updateManualQuestions(){
+  const mode=document.getElementById('manualMode')?.value||'learn';
+  const blockIndex=Number(document.getElementById('manualBlock')?.value)||0;
+  const questionSelect=document.getElementById('manualQuestion');
+  if(!questionSelect)return;
+  const bank=manualBank(mode);
+  const start=blockIndex*SECTION_SIZE;
+  const block=bank.slice(start,start+SECTION_SIZE);
+  questionSelect.innerHTML='';
+  block.forEach((q,index)=>{
+    const option=document.createElement('option');
+    option.value=start+index;
+    const compact=q.question.length>94?`${q.question.slice(0,91)}…`:q.question;
+    option.textContent=`${start+index+1}. ${compact}`;
+    questionSelect.appendChild(option);
+  });
+}
+function selectManualBlock(blockIndex){
+  const mode=document.getElementById('manualMode');
+  const block=document.getElementById('manualBlock');
+  if(!mode||!block)return;
+  mode.value='learn';
+  updateManualControls();
+  block.value=String(blockIndex);
+  updateManualQuestions();
+  document.getElementById('manualResumeCard')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function startManualResume(){
+  const mode=document.getElementById('manualMode').value;
+  const absoluteIndex=Number(document.getElementById('manualQuestion').value)||0;
+  restoreQuizCardMarkup();
+  if(mode==='learn'){
+    const markEarlier=!!document.getElementById('manualMarkEarlier').checked;
+    session=createLearnSession({absoluteIndex,markEarlier});
+  }else{
+    session=createFixedExamSession(Number(mode.slice(-1)),absoluteIndex);
+  }
+  if(!session){alert('No questions are available at that position.');return}
+  saveSession();
+  showSection('quiz');
+  advanceToQuestion();
+  updateHome();
+}
+function exportProgress(){
+  const payload={
+    app:'HVAC/R EPA 608 Master Study Tool',backupVersion:1,exportedAt:new Date().toISOString(),
+    mastered:[...masteredSet()],categories:selectedCats(),stats:getStats(),sessions:{}
+  };
+  Object.keys(SESSION_KEYS).forEach(mode=>{const saved=loadValidSession(mode);if(saved)payload.sessions[mode]=saved});
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download=`EPA_608_Progress_Backup_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function importProgress(event){
+  const file=event.target.files?.[0];
+  event.target.value='';
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(String(reader.result||''));
+      if(data.app!=='HVAC/R EPA 608 Master Study Tool'||data.backupVersion!==1)throw new Error('This is not a compatible EPA 608 progress backup.');
+      const mastered=Array.isArray(data.mastered)?data.mastered.filter(id=>questionById(id)):[];
+      const categories=Array.isArray(data.categories)?data.categories.filter(c=>EXAM_CATEGORIES.includes(c)):EXAM_CATEGORIES;
+      if(!saveJSON(MASTERED_KEY,mastered)||!saveJSON(CATEGORY_KEY,categories)||!saveJSON(STATS_KEY,data.stats||{answered:0,correct:0}))throw new Error('Browser storage is unavailable.');
+      Object.keys(SESSION_KEYS).forEach(mode=>{
+        const imported=normalizeSession(data.sessions?.[mode]);
+        try{
+          if(imported)localStorage.setItem(SESSION_KEYS[mode],JSON.stringify(imported));
+          else localStorage.removeItem(SESSION_KEYS[mode]);
+        }catch(e){throw new Error('Browser storage is unavailable.')}
+      });
+      loadCategories();
+      updateHome();
+      updateManualControls();
+      alert('Progress backup imported successfully.');
+    }catch(error){alert(`Import failed: ${error.message}`)}
+  };
+  reader.onerror=()=>alert('Import failed: the backup file could not be read.');
+  reader.readAsText(file);
+}
 function resetAllProgress(){
-  if(!confirm('Reset all EPA 608 mastery, autosave, category, and practice progress on this device?'))return;
-  [MASTERED_KEY,CATEGORY_KEY,SESSION_KEY,STATS_KEY,LEGACY_SESSION_KEY,'hvac608ProgressV3','hvac608ConfidenceV4']
-    .forEach(key=>{try{localStorage.removeItem(key)}catch(e){}});
+  if(!confirm('Reset all EPA 608 mastery, autosaves, category selections, and practice progress on this device?'))return;
+  const keys=[MASTERED_KEY,CATEGORY_KEY,STATS_KEY,OLD_STATS_KEY,OLD_SESSION_KEY,LEGACY_SESSION_KEY,'hvac608ProgressV3','hvac608ConfidenceV4',...Object.values(SESSION_KEYS)];
+  keys.forEach(key=>{try{localStorage.removeItem(key)}catch(e){}});
+  session=null;
   loadCategories();
   restoreQuizCardMarkup();
   showSection('home');
+  updateManualControls();
 }
 document.addEventListener('keydown',event=>{
   const active=document.activeElement;
@@ -1077,8 +1467,8 @@ document.addEventListener('keydown',event=>{
   }
 });
 loadCategories();
-session=loadValidSession();
 updateHome();
+updateManualControls();
 
 </script>
 </body>
