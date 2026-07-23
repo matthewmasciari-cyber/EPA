@@ -437,6 +437,27 @@ body.quiz-open .app{max-width:none;padding:0}
 .missed-item p{margin:5px 0;color:#42516a;font-size:.84rem;line-height:1.4}
 .missed-item .wrong-answer{color:var(--red2)}
 .missed-item .right-answer{color:var(--blue)}
+.exam-status-panel{display:none;margin:10px 0 14px;gap:10px;align-items:stretch}
+.exam-status-panel.show{display:grid;grid-template-columns:170px 1fr}
+.exam-timer{background:#fff;border:2px solid rgba(255,255,255,.6);border-radius:12px;padding:9px 12px;color:var(--blue2);box-shadow:0 7px 18px rgba(0,0,0,.16)}
+.exam-timer span{display:block;font-size:.66rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.exam-timer b{display:block;font-size:1.42rem;line-height:1.15;font-variant-numeric:tabular-nums}
+.exam-timer.warning{border-color:#ffc35a;background:#fff8e8}.exam-timer.danger{border-color:var(--red);background:#fff0f2;color:var(--red2)}
+.exam-section-track{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.exam-section-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.34);border-radius:10px;padding:8px 7px;color:#d8e5ff;text-align:center;font-size:.68rem;font-weight:900}
+.exam-section-pill span{display:block;font-size:.62rem;font-weight:700;margin-top:2px;opacity:.85}
+.exam-section-pill.current{background:#fff;color:var(--blue2);border-color:#fff}.exam-section-pill.complete{background:rgba(21,87,213,.55);color:#fff}.exam-section-pill.review{background:rgba(207,38,61,.62);color:#fff}
+.quiz-choices .choice.exam-selected{border-color:var(--blue);background:#edf3ff;box-shadow:0 0 0 2px rgba(21,87,213,.12) inset}
+.quiz-choices .choice.exam-selected::after{content:'●';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue);font-size:.9rem}
+.exam-navigator{display:none;margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:13px;padding:10px}
+.exam-navigator.show{display:block}.exam-navigator summary{cursor:pointer;color:#fff;font-size:.76rem;font-weight:900;list-style:none}.exam-navigator summary::-webkit-details-marker{display:none}
+.exam-map-groups{display:grid;gap:8px;margin-top:10px}.exam-map-group{display:grid;grid-template-columns:58px repeat(25,minmax(22px,1fr));gap:3px;align-items:center}.exam-map-label{color:#d8e5ff;font-size:.66rem;font-weight:900}
+.exam-map-btn{height:25px;padding:0;border-radius:6px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.09);color:#dce7ff;font-size:.61rem;font-weight:850}
+.exam-map-btn.answered{background:#fff;color:var(--blue2)}.exam-map-btn.flagged{background:#fff0f2;color:var(--red2);border-color:#ff9cab}.exam-map-btn.current{outline:3px solid var(--red);outline-offset:1px}.exam-map-btn.unanswered{opacity:.72}
+.exam-bottom-controls{display:none;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap}.exam-bottom-controls.show{display:flex}.exam-bottom-controls .btn{min-width:110px}.exam-bottom-controls .flag-active{background:var(--red);color:#fff;border-color:transparent}
+.exam-review-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px auto;max-width:620px}.exam-review-stat{background:#f5f8fc;border:1px solid var(--line);border-radius:12px;padding:13px}.exam-review-stat b{display:block;color:var(--blue2);font-size:1.45rem}.exam-review-stat span{color:var(--muted);font-size:.75rem}
+.exam-section-results{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px auto;max-width:760px}.exam-result-section{border:1px solid var(--line);border-top:5px solid var(--red);border-radius:12px;padding:13px;background:#fff;text-align:left}.exam-result-section.pass{border-top-color:var(--blue);background:#f4f8ff}.exam-result-section h4{margin:0 0 7px;color:var(--blue2)}.exam-result-section b{font-size:1.35rem;color:var(--blue2)}.exam-result-section span{display:block;margin-top:5px;font-size:.75rem;font-weight:900;color:var(--red2)}.exam-result-section.pass span{color:var(--blue)}
+.section-transition-note{max-width:580px;margin:12px auto;color:var(--muted);line-height:1.55}
 .keyboard-hint{text-align:center;margin-top:12px;color:#d8e5ff;font-size:.72rem}
 
 
@@ -494,6 +515,11 @@ body.quiz-open .app{max-width:none;padding:0}
   .quiz-choices{grid-template-columns:1fr}
   .quiz-card .qtext{margin-bottom:24px}
   .quiz-meta{font-size:.68rem}
+  .exam-status-panel.show{grid-template-columns:1fr}
+  .exam-section-track{grid-template-columns:repeat(2,1fr)}
+  .exam-map-group{grid-template-columns:42px repeat(5,1fr)}
+  .exam-map-label{grid-column:1/-1}
+  .exam-section-results{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:520px){
   .app{padding:12px}
@@ -628,14 +654,14 @@ body.quiz-open .app{max-width:none;padding:0}
         <div><span class="count" id="guideCount">0</span><br><button class="btn" onclick="openComponents()">Open</button></div>
       </div>
       <div class="card navcard" id="examCard">
-        <div><h3>Two Unique 100-Question Exams</h3><p>Each fixed exam contains 25 Core, 25 Type I, 25 Type II, and 25 Type III questions. No question wording is shared between Exam 1 and Exam 2.</p></div>
+        <div><h3>Two Unique 100-Question Exams</h3><p>Each fixed 100-question exam runs Core, Type I, Type II, and Type III as four consecutive 25-question sections. A visible three-hour timer, editable answers, flags, and a full question map are included. Results stay hidden until final submission, and no question wording is shared between Exam 1 and Exam 2.</p></div>
         <div>
           <span class="count">2 × 100</span>
           <div class="exam-actions">
             <button class="btn warn" onclick="startExam(1)">Exam 1</button>
             <button class="btn warn" onclick="startExam(2)">Exam 2</button>
           </div>
-          <div class="exam-breakdown">25 questions from each certification type per exam</div>
+          <div class="exam-breakdown">3-hour window • 25 questions per section • results hidden until submission</div>
         </div>
       </div>
     </div>
@@ -664,6 +690,10 @@ body.quiz-open .app{max-width:none;padding:0}
               <div class="autosave-status" id="autosaveStatus">Autosave ready</div>
             </div>
             <div class="current-block-badge" id="currentBlockBadge"></div>
+            <div id="examStatusPanel" class="exam-status-panel">
+              <div id="examTimerBox" class="exam-timer"><span>Time remaining</span><b id="examTimer">3:00:00</b></div>
+              <div id="examSectionTrack" class="exam-section-track"></div>
+            </div>
             <div class="focus-progress">
               <div class="progress-bubble" id="progressBubble">0</div>
               <div class="segment-progress" id="sectionSegments"></div>
@@ -687,10 +717,19 @@ body.quiz-open .app{max-width:none;padding:0}
             <button id="dontKnowBtn" class="dont-know" onclick="answerChoice(-1,null)">Don't know?</button>
           </div>
         </div>
+        <details id="examNavigator" class="exam-navigator">
+          <summary id="examNavigatorSummary">Question map</summary>
+          <div id="examMapGroups" class="exam-map-groups"></div>
+        </details>
         <div class="keyboard-hint" id="keyboardHint">Use number keys 1–4 to answer • Space or Enter to continue</div>
       </div>
       <div class="quiz-bottom">
         <button class="continue-btn" id="nextBtn" onclick="continueSession()" style="display:none">Continue <span aria-hidden="true" style="opacity:.75;font-size:.78em">(Space)</span></button>
+        <div id="examBottomControls" class="exam-bottom-controls">
+          <button class="btn" id="examPrevBtn" onclick="examPrevious()">← Previous</button>
+          <button class="btn" id="examFlagBtn" onclick="toggleExamFlag()">⚑ Flag for Review</button>
+          <button class="btn primary" id="examNextBtn" onclick="examNext()">Next →</button>
+        </div>
       </div>
     </div>
   </section>
@@ -718,13 +757,16 @@ const SESSION_KEYS={
   exam2:'hvac608SessionExam2V6',
   missed:'hvac608SessionMissedV7'
 };
-const SESSION_VERSION=8;
+const SESSION_VERSION=9;
+const EXAM_TIME_LIMIT_SECONDS=3*60*60;
+const EXAM_PASS_COUNT=18;
 const EXAM_CATEGORIES=['Core','Type I','Type II','Type III'];
 
 let libraryMode='questions';
 let session=null;
 let currentQuestion=null;
 let answerLocked=false;
+let examTimerInterval=null;
 
 function storageAvailable(){
   try{
@@ -1104,8 +1146,9 @@ function buildFixedExamSets(){
     sets.exam1.push(...first.map(q=>q.id));
     sets.exam2.push(...second.map(q=>q.id));
   });
-  sets.exam1=seededShuffle(sets.exam1,60801);
-  sets.exam2=seededShuffle(sets.exam2,60802);
+  // Keep the four 25-question certification sections together while randomizing within each section.
+  sets.exam1=EXAM_CATEGORIES.flatMap((category,index)=>seededShuffle(sets.exam1.filter(id=>questionById(id)?.category===category),60801+index));
+  sets.exam2=EXAM_CATEGORIES.flatMap((category,index)=>seededShuffle(sets.exam2.filter(id=>questionById(id)?.category===category),60901+index));
   return sets;
 }
 const FIXED_EXAMS=buildFixedExamSets();
@@ -1120,7 +1163,9 @@ function normalizeSession(raw){
   if(raw.version===5){
     const migratedMode=raw.mode==='mock'?'quick':raw.mode;
     raw={...raw,version:SESSION_VERSION,mode:migratedMode,choiceOrder:null,lastChoiceOrders:{}};
-  }else if(raw.version===6||raw.version===7){
+  }else if(raw.version===6||raw.version===7||raw.version===8){
+    // Old exam sessions revealed answers immediately and cannot be reconstructed safely.
+    if(raw.mode?.startsWith('exam'))return null;
     raw={...raw,version:SESSION_VERSION};
   }
   if(raw.version!==SESSION_VERSION||!SESSION_KEYS[raw.mode])return null;
@@ -1134,6 +1179,7 @@ function normalizeSession(raw){
     if(!validChoiceOrder(raw.choiceOrder,q))raw.choiceOrder=null;
   }else raw.choiceOrder=null;
   raw.answerState=raw.answerState||null;
+  if(raw.mode.startsWith('exam'))initializeExamState(raw);
   const savedConfidence=raw.answerState?.confidenceResult;
   if(savedConfidence&&Number(savedConfidence.gap)===999&&savedConfidence.hasPriorAttempt===undefined){
     const oldScore=Number(savedConfidence.score)||0;
@@ -1214,14 +1260,18 @@ function showSection(id){
   const target=document.getElementById(id);
   if(target)target.classList.add('active');
   document.body.classList.toggle('quiz-open',id==='quiz');
+  if(id==='quiz'&&session?.mode?.startsWith('exam'))startExamTimer();
+  else stopExamTimer();
   if(id==='home')updateHome();
   window.scrollTo(0,0);
 }
 function describeSavedSession(saved){
   const remaining=(saved.queueIds?.length||0)+(saved.currentId?1:0);
   if(saved.mode.startsWith('exam')){
-    const absolute=(saved.manualOffset||0)+(saved.answered||0)+1;
-    return `${remaining} remaining • next exam position approximately ${Math.min(saved.fullTotal||100,absolute)} of ${saved.fullTotal||100}`;
+    initializeExamState(saved);
+    const answered=Object.keys(saved.examAnswers||{}).length;
+    const seconds=Math.max(0,Math.floor(((saved.examEndsAt||Date.now())-Date.now())/1000));
+    return `${answered} of 100 answered • ${formatExamTime(seconds)} remaining`;
   }
   if(saved.mode==='learn')return `${remaining} active • ${(saved.blockCorrect||[]).length} mastered in this block`;
   return `${remaining} remaining • ${saved.score||0} correct so far`;
@@ -1286,6 +1336,13 @@ function resumeSession(mode){
     session.questionExpectedSeconds=expectedResponseSeconds(questionById(session.currentId));
   }
   if((mode==='learn'||mode==='quick')&&saved.cats.length)setSelectedCats(saved.cats);
+  if(session.mode.startsWith('exam')){
+    initializeExamState(session);
+    showSection('quiz');
+    if(session.completed)return;
+    goToExamQuestion(session.currentExamIndex,{skipRestore:true});
+    return;
+  }
   currentQuestion=questionById(session.currentId);
   showSection('quiz');
   if(session.currentId)renderSession();
@@ -1299,7 +1356,10 @@ function baseSession(mode,cats,ids){
     questionShownAt:null,questionExpectedSeconds:null,
     blockCorrect:[],pendingReviewIds:[],blockAnchorId:null,missedIds:[],missedAnswers:{},sourceMode:null,
     score:0,answered:0,total:ids.length,fullTotal:ids.length,
-    manualOffset:0,completed:false,savedAt:new Date().toISOString()
+    manualOffset:0,completed:false,savedAt:new Date().toISOString(),
+    examAnswers:{},examChoiceOrders:{},flaggedIds:[],currentExamIndex:0,
+    examReviewPhase:false,examReviewQueue:[],examReviewPosition:0,examReviewScreen:false,
+    sectionTransition:null,examStartedAt:null,examEndsAt:null,timeLimitSeconds:EXAM_TIME_LIMIT_SECONDS
   };
 }
 function createLearnSession(options={}){
@@ -1356,6 +1416,12 @@ function createFixedExamSession(number,startIndex=0){
   created.manualOffset=start;
   created.examNumber=number;
   created.manualResume=start>0;
+  created.currentExamIndex=start;
+  created.examStartedAt=Date.now();
+  created.examEndsAt=created.examStartedAt+EXAM_TIME_LIMIT_SECONDS*1000;
+  created.currentId=allIds[start]||null;
+  created.queueIds=[];
+  initializeExamState(created);
   return created;
 }
 function createMissedExamSession(ids,sourceMode='exam1'){
@@ -1394,8 +1460,10 @@ function startExam(number){
   const mode=`exam${number}`;
   const saved=loadValidSession(mode);
   session=saved&&!saved.completed?saved:createFixedExamSession(number,0);
+  initializeExamState(session);
   showSection('quiz');
-  advanceToQuestion();
+  if(session.completed)return;
+  goToExamQuestion(session.currentExamIndex,{skipRestore:true});
 }
 function startMock(){startExam(1)}
 function startMissedExam(){
@@ -1409,6 +1477,299 @@ function startMissedExam(){
   saveSession();
   showSection('quiz');
   advanceToQuestion();
+}
+
+function formatExamTime(totalSeconds){
+  const value=Math.max(0,Math.floor(Number(totalSeconds)||0));
+  const hours=Math.floor(value/3600);
+  const minutes=Math.floor((value%3600)/60);
+  const seconds=value%60;
+  return `${hours}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+}
+function initializeExamState(target=session){
+  if(!target?.mode?.startsWith('exam'))return target;
+  const allIds=(target.blockIds?.length?target.blockIds:FIXED_EXAMS[target.mode]||[]).filter(id=>questionById(id));
+  target.blockIds=[...allIds];
+  target.queueIds=[];
+  target.examAnswers=target.examAnswers&&typeof target.examAnswers==='object'?target.examAnswers:{};
+  target.examChoiceOrders=target.examChoiceOrders&&typeof target.examChoiceOrders==='object'?target.examChoiceOrders:{};
+  target.flaggedIds=Array.isArray(target.flaggedIds)?[...new Set(target.flaggedIds.filter(id=>allIds.includes(id)))]:[];
+  target.currentExamIndex=Math.max(0,Math.min(allIds.length-1,Number.isInteger(target.currentExamIndex)?target.currentExamIndex:(Number(target.manualOffset)||0)));
+  target.examReviewPhase=!!target.examReviewPhase;
+  target.examReviewQueue=Array.isArray(target.examReviewQueue)?target.examReviewQueue.filter(id=>allIds.includes(id)):[];
+  target.examReviewPosition=Math.max(0,Number(target.examReviewPosition)||0);
+  target.examReviewScreen=!!target.examReviewScreen;
+  target.sectionTransition=target.sectionTransition||null;
+  target.timeLimitSeconds=Number(target.timeLimitSeconds)||EXAM_TIME_LIMIT_SECONDS;
+  if(!Number(target.examStartedAt))target.examStartedAt=Date.now();
+  if(!Number(target.examEndsAt))target.examEndsAt=target.examStartedAt+target.timeLimitSeconds*1000;
+  target.total=allIds.length;
+  target.fullTotal=allIds.length;
+  target.answered=allIds.filter(id=>Number.isInteger(target.examAnswers[id])).length;
+  if(!target.examReviewScreen&&!target.sectionTransition){
+    target.currentId=allIds[target.currentExamIndex]||null;
+  }
+  return target;
+}
+function examSecondsRemaining(target=session){
+  if(!target?.mode?.startsWith('exam'))return 0;
+  initializeExamState(target);
+  return Math.max(0,Math.ceil((target.examEndsAt-Date.now())/1000));
+}
+function startExamTimer(){
+  stopExamTimer();
+  if(!session?.mode?.startsWith('exam')||session.completed)return;
+  updateExamTimer();
+  examTimerInterval=setInterval(updateExamTimer,1000);
+}
+function stopExamTimer(){
+  if(examTimerInterval){clearInterval(examTimerInterval);examTimerInterval=null}
+}
+function updateExamTimer(){
+  if(!session?.mode?.startsWith('exam')||session.completed){stopExamTimer();return}
+  const remaining=examSecondsRemaining();
+  const label=document.getElementById('examTimer');
+  const box=document.getElementById('examTimerBox');
+  if(label)label.textContent=formatExamTime(remaining);
+  if(box){box.classList.toggle('warning',remaining<=30*60&&remaining>10*60);box.classList.toggle('danger',remaining<=10*60)}
+  if(remaining<=0){
+    stopExamTimer();
+    submitExam(true);
+  }
+}
+function examSectionIndex(index=session?.currentExamIndex||0){return Math.max(0,Math.min(3,Math.floor(index/25)))}
+function renderExamStatus(){
+  const panel=document.getElementById('examStatusPanel');
+  if(!panel)return;
+  const isExam=session?.mode?.startsWith('exam')&&!session.completed;
+  panel.classList.toggle('show',isExam);
+  if(!isExam)return;
+  updateExamTimer();
+  const track=document.getElementById('examSectionTrack');
+  const currentSection=examSectionIndex();
+  track.innerHTML=EXAM_CATEGORIES.map((category,index)=>{
+    const complete=session.examReviewPhase||session.examReviewScreen||currentSection>index;
+    const current=!session.examReviewPhase&&!session.examReviewScreen&&currentSection===index;
+    const reviewing=(session.examReviewPhase||session.examReviewScreen)&&index===3;
+    const status=reviewing?'Review':complete?'Complete':current?'Current':'Upcoming';
+    return `<div class="exam-section-pill ${reviewing?'review':complete?'complete':current?'current':''}">${escapeHTML(category)}<span>${status}</span></div>`;
+  }).join('');
+}
+function examQuestionOrder(q){
+  session.examChoiceOrders=session.examChoiceOrders||{};
+  let order=session.examChoiceOrders[q.id];
+  if(!validChoiceOrder(order,q)){
+    order=makeChoiceOrder(q,null);
+    session.examChoiceOrders[q.id]=[...order];
+  }
+  return [...order];
+}
+function goToExamQuestion(index,options={}){
+  if(!session?.mode?.startsWith('exam')||session.completed)return;
+  initializeExamState(session);
+  const target=Math.max(0,Math.min(session.blockIds.length-1,Number(index)||0));
+  session.currentExamIndex=target;
+  session.currentId=session.blockIds[target];
+  if(session.examReviewPhase){
+    const reviewPosition=session.examReviewQueue.indexOf(session.currentId);
+    if(reviewPosition>=0)session.examReviewPosition=reviewPosition;
+    else session.examReviewPhase=false;
+  }
+  session.sectionTransition=null;
+  session.examReviewScreen=false;
+  session.answerState=null;
+  currentQuestion=questionById(session.currentId);
+  session.choiceOrder=examQuestionOrder(currentQuestion);
+  session.questionShownAt=Date.now();
+  session.questionExpectedSeconds=expectedResponseSeconds(currentQuestion);
+  if(!options.skipRestore)restoreQuizCardMarkup();
+  saveSession();
+  renderSession();
+}
+function recordExamAnswer(displayIndex){
+  if(!session?.mode?.startsWith('exam')||!currentQuestion)return;
+  const originalIndex=displayIndex<0?null:session.choiceOrder[displayIndex];
+  if(!Number.isInteger(originalIndex))delete session.examAnswers[currentQuestion.id];
+  else session.examAnswers[currentQuestion.id]=originalIndex;
+  session.answered=session.blockIds.filter(id=>Number.isInteger(session.examAnswers[id])).length;
+  saveSession();
+  renderSession();
+}
+function clearExamAnswer(){
+  if(!session?.mode?.startsWith('exam')||!currentQuestion)return;
+  delete session.examAnswers[currentQuestion.id];
+  session.answered=session.blockIds.filter(id=>Number.isInteger(session.examAnswers[id])).length;
+  saveSession();renderSession();
+}
+function toggleExamFlag(){
+  if(!session?.mode?.startsWith('exam')||!session.currentId)return;
+  const flags=new Set(session.flaggedIds||[]);
+  if(flags.has(session.currentId))flags.delete(session.currentId);else flags.add(session.currentId);
+  session.flaggedIds=[...flags];
+  saveSession();renderExamNavigator();renderExamControls();
+}
+function examPrevious(){
+  if(!session?.mode?.startsWith('exam'))return;
+  if(session.examReviewPhase){
+    if(session.examReviewPosition>0){
+      session.examReviewPosition--;
+      const id=session.examReviewQueue[session.examReviewPosition];
+      goToExamQuestion(session.blockIds.indexOf(id));
+    }else return;
+    return;
+  }
+  goToExamQuestion(Math.max(0,session.currentExamIndex-1));
+}
+function examNext(){
+  if(!session?.mode?.startsWith('exam'))return;
+  initializeExamState(session);
+  if(session.examReviewPhase){
+    if(session.examReviewPosition<session.examReviewQueue.length-1){
+      session.examReviewPosition++;
+      const id=session.examReviewQueue[session.examReviewPosition];
+      goToExamQuestion(session.blockIds.indexOf(id));
+    }else renderExamReviewScreen();
+    return;
+  }
+  const index=session.currentExamIndex;
+  if([24,49,74].includes(index)){
+    const sectionIndex=examSectionIndex(index);
+    session.sectionTransition={completedCategory:EXAM_CATEGORIES[sectionIndex],nextCategory:EXAM_CATEGORIES[sectionIndex+1],nextIndex:index+1};
+    session.currentId=null;
+    saveSession();
+    renderExamSectionTransition();
+    return;
+  }
+  if(index>=session.blockIds.length-1){beginExamReview();return}
+  goToExamQuestion(index+1);
+}
+function renderExamSectionTransition(){
+  if(!session?.sectionTransition)return;
+  restoreQuizCardMarkup();
+  const transition=session.sectionTransition;
+  const card=document.getElementById('quizCard');
+  document.getElementById('qCategory').textContent='Section complete';
+  document.getElementById('qCounter').textContent=`${transition.completedCategory} complete`;
+  document.getElementById('learnStatus').textContent='';
+  document.getElementById('choices').innerHTML='';
+  document.getElementById('explanation').style.display='none';
+  document.getElementById('dontKnowBtn').style.display='none';
+  card.innerHTML=`<div class="completion-box"><div class="completion-icon">✓</div><h2>${escapeHTML(transition.completedCategory)} section complete</h2><p class="section-transition-note">Your answers are saved. Results remain hidden until all 100 questions are submitted. You are now moving to ${escapeHTML(transition.nextCategory)}.</p><div class="completion-actions"><button class="btn primary" onclick="continueExamSection()">Continue to ${escapeHTML(transition.nextCategory)} <span aria-hidden="true" style="opacity:.76">(Space)</span></button><button class="btn" onclick="goToExamQuestion(${transition.nextIndex-1})">Return to Question ${transition.nextIndex}</button></div></div>`;
+  renderExamStatus();renderExamNavigator();renderExamControls(true);
+  const hint=document.getElementById('keyboardHint');if(hint)hint.textContent=`${transition.completedCategory} complete • Press Space to begin ${transition.nextCategory}`;
+}
+function continueExamSection(){
+  if(!session?.sectionTransition)return;
+  const nextIndex=session.sectionTransition.nextIndex;
+  session.sectionTransition=null;
+  goToExamQuestion(nextIndex);
+}
+function beginExamReview(){
+  const unanswered=session.blockIds.filter(id=>!Number.isInteger(session.examAnswers[id]));
+  const queue=[...new Set([...(session.flaggedIds||[]),...unanswered])];
+  if(!queue.length){renderExamReviewScreen();return}
+  session.examReviewPhase=true;
+  session.examReviewQueue=queue;
+  session.examReviewPosition=0;
+  const firstIndex=session.blockIds.indexOf(queue[0]);
+  saveSession();
+  goToExamQuestion(firstIndex);
+}
+function renderExamReviewScreen(){
+  if(!session?.mode?.startsWith('exam'))return;
+  restoreQuizCardMarkup();
+  session.examReviewPhase=false;
+  session.examReviewScreen=true;
+  session.currentId=null;
+  saveSession();
+  const answered=session.blockIds.filter(id=>Number.isInteger(session.examAnswers[id])).length;
+  const unanswered=session.blockIds.length-answered;
+  const flagged=(session.flaggedIds||[]).length;
+  const card=document.getElementById('quizCard');
+  card.innerHTML=`<div class="completion-box"><div class="completion-icon">✓</div><h2>Final exam review</h2><p>No answers or scores have been revealed. Review flagged or unanswered questions before submitting the full 100-question exam.</p><div class="exam-review-summary"><div class="exam-review-stat"><b>${answered}</b><span>Answered</span></div><div class="exam-review-stat"><b>${unanswered}</b><span>Unanswered</span></div><div class="exam-review-stat"><b>${flagged}</b><span>Flagged</span></div></div><div class="completion-actions">${unanswered?`<button class="btn primary" onclick="goToExamQuestion(${session.blockIds.findIndex(id=>!Number.isInteger(session.examAnswers[id]))})">Review Unanswered</button>`:''}${flagged?`<button class="btn" onclick="goToExamQuestion(${session.blockIds.indexOf(session.flaggedIds[0])})">Review Flagged</button>`:''}<button class="btn warn" onclick="submitExam(false)">Submit Exam</button></div></div>`;
+  renderExamStatus();renderExamNavigator();renderExamControls(true);
+  const hint=document.getElementById('keyboardHint');if(hint)hint.textContent='Review answers as needed • Results appear only after Submit Exam';
+}
+function renderExamNavigator(){
+  const nav=document.getElementById('examNavigator');
+  const groups=document.getElementById('examMapGroups');
+  const summary=document.getElementById('examNavigatorSummary');
+  const isExam=session?.mode?.startsWith('exam')&&!session.completed;
+  if(!nav||!groups||!summary)return;
+  nav.classList.toggle('show',isExam);
+  if(!isExam){groups.innerHTML='';return}
+  const answered=session.blockIds.filter(id=>Number.isInteger(session.examAnswers[id])).length;
+  summary.textContent=`Question map • ${answered}/100 answered • ${(session.flaggedIds||[]).length} flagged`;
+  groups.innerHTML=EXAM_CATEGORIES.map((category,sectionIndex)=>{
+    const start=sectionIndex*25;
+    const buttons=session.blockIds.slice(start,start+25).map((id,offset)=>{
+      const index=start+offset;
+      const answered=Number.isInteger(session.examAnswers[id]);
+      const flagged=(session.flaggedIds||[]).includes(id);
+      const current=session.currentId===id&&!session.examReviewScreen&&!session.sectionTransition;
+      return `<button class="exam-map-btn ${answered?'answered':'unanswered'} ${flagged?'flagged':''} ${current?'current':''}" onclick="goToExamQuestion(${index})" title="${escapeHTML(category)} question ${offset+1}${flagged?' — flagged':''}">${index+1}</button>`;
+    }).join('');
+    return `<div class="exam-map-group"><div class="exam-map-label">${escapeHTML(category)}</div>${buttons}</div>`;
+  }).join('');
+}
+function renderExamControls(hidden=false){
+  const controls=document.getElementById('examBottomControls');
+  const next=document.getElementById('nextBtn');
+  if(next)next.style.display='none';
+  if(!controls)return;
+  const show=session?.mode?.startsWith('exam')&&!session.completed&&!hidden&&!session.sectionTransition&&!session.examReviewScreen;
+  controls.classList.toggle('show',show);
+  if(!show)return;
+  const prev=document.getElementById('examPrevBtn');
+  const flag=document.getElementById('examFlagBtn');
+  const nextButton=document.getElementById('examNextBtn');
+  if(prev)prev.disabled=session.examReviewPhase?session.examReviewPosition<=0:session.currentExamIndex<=0;
+  const flagged=(session.flaggedIds||[]).includes(session.currentId);
+  if(flag){flag.classList.toggle('flag-active',flagged);flag.textContent=flagged?'⚑ Flagged — Remove':'⚑ Flag for Review'}
+  if(nextButton){
+    if(session.examReviewPhase)nextButton.textContent=session.examReviewPosition>=session.examReviewQueue.length-1?'Finish Review':'Next Flagged →';
+    else nextButton.textContent=session.currentExamIndex>=99?'Review & Submit':'Next →';
+  }
+}
+function computeExamResults(target=session){
+  const sections={};
+  EXAM_CATEGORIES.forEach(category=>{
+    const ids=target.blockIds.filter(id=>questionById(id)?.category===category);
+    const correct=ids.filter(id=>target.examAnswers[id]===questionById(id)?.answer).length;
+    sections[category]={correct,total:ids.length,passed:correct>=EXAM_PASS_COUNT};
+  });
+  const corePassed=sections.Core.passed;
+  const passedTypes=['Type I','Type II','Type III'].filter(category=>sections[category].passed);
+  const universal=corePassed&&passedTypes.length===3;
+  const score=Object.values(sections).reduce((sum,item)=>sum+item.correct,0);
+  return {sections,corePassed,passedTypes,universal,score};
+}
+function submitExam(autoSubmit=false){
+  if(!session?.mode?.startsWith('exam')||session.completed)return;
+  initializeExamState(session);
+  const unanswered=session.blockIds.filter(id=>!Number.isInteger(session.examAnswers[id])).length;
+  if(!autoSubmit&&unanswered&&!confirm(`Submit with ${unanswered} unanswered question${unanswered===1?'':'s'}? Unanswered questions will be scored incorrect.`))return;
+  const result=computeExamResults(session);
+  session.score=result.score;
+  session.answered=session.blockIds.filter(id=>Number.isInteger(session.examAnswers[id])).length;
+  session.examResult=result;
+  session.missedIds=[];
+  session.missedAnswers={};
+  session.blockIds.forEach(id=>{
+    const q=questionById(id);const selected=session.examAnswers[id];
+    if(selected!==q.answer){session.missedIds.push(id);session.missedAnswers[id]=Number.isInteger(selected)?selected:-1}
+  });
+  session.autoSubmitted=!!autoSubmit;
+  session.completed=true;
+  session.currentId=null;
+  session.sectionTransition=null;
+  session.examReviewScreen=false;
+  session.examReviewPhase=false;
+  stopExamTimer();
+  saveSession();
+  restoreQuizCardMarkup();
+  renderCompletion();
+  updateHome();
 }
 
 function hasLetterDependentChoice(q){
@@ -1449,7 +1810,11 @@ function makeChoiceOrder(q,lastOrder){
   return candidate;
 }
 function ensureChoiceOrder(){
-  if(!session||!currentQuestion)return;
+  if(!currentQuestion||!session)return;
+  if(session.mode.startsWith('exam')){
+    session.choiceOrder=examQuestionOrder(currentQuestion);
+    return;
+  }
   if(validChoiceOrder(session.choiceOrder,currentQuestion))return;
   const last=session.lastChoiceOrders?.[currentQuestion.id]||null;
   session.choiceOrder=makeChoiceOrder(currentQuestion,last);
@@ -1458,6 +1823,11 @@ function ensureChoiceOrder(){
 }
 function advanceToQuestion(){
   if(!session)return;
+  if(session.mode.startsWith('exam')){
+    initializeExamState(session);
+    goToExamQuestion(session.currentExamIndex);
+    return;
+  }
   if(session.currentId){
     currentQuestion=questionById(session.currentId);
     if(!session.answerState&&!session.questionShownAt){
@@ -1487,7 +1857,7 @@ function progressValues(){
     const done=(session.blockCorrect||[]).length;
     return {done,total:session.total,current:Math.min(done,Math.max(0,session.total-1))};
   }
-  const done=session.answered||0;
+  const done=session.mode.startsWith('exam')?Object.keys(session.examAnswers||{}).length:(session.answered||0);
   return {done,total:session.total,current:Math.min(done,Math.max(0,session.total-1))};
 }
 function renderSegments(){
@@ -1506,7 +1876,7 @@ function renderSegments(){
     else if(!session.completed&&i===currentSegment)div.classList.add('current');
     box.appendChild(div);
   }
-  document.getElementById('progressBubble').textContent=session.mode==='learn'?(session.blockCorrect||[]).length:(session.answered||0);
+  document.getElementById('progressBubble').textContent=session.mode==='learn'?(session.blockCorrect||[]).length:session.mode.startsWith('exam')?Object.keys(session.examAnswers||{}).length:(session.answered||0);
   document.getElementById('progressTotal').textContent=session.total;
 }
 function learnBlockInfo(target=session){
@@ -1528,8 +1898,9 @@ function hasMoreLearnQuestions(target=session){
 }
 function questionPositionText(){
   if(session.mode.startsWith('exam')){
-    const absolute=Math.min(session.fullTotal,(session.manualOffset||0)+(session.answered||0)+1);
-    return `Exam question ${absolute} of ${session.fullTotal}`;
+    const section=examSectionIndex();
+    const sectionPosition=(session.currentExamIndex%25)+1;
+    return `Exam question ${session.currentExamIndex+1} of 100 • ${EXAM_CATEGORIES[section]} ${sectionPosition} of 25`;
   }
   if(session.mode==='learn'){
     const info=learnBlockInfo();
@@ -1545,38 +1916,49 @@ function questionPositionText(){
 }
 function renderSession(){
   if(!session)return;
+  if(session.mode.startsWith('exam'))initializeExamState(session);
   const keyboardHint=document.getElementById('keyboardHint');
-  if(keyboardHint)keyboardHint.textContent='Use number keys 1–4 to answer • Space or Enter to continue';
+  if(keyboardHint)keyboardHint.textContent=session.mode.startsWith('exam')?'Use 1–4 to choose • Space/Right Arrow next • Left Arrow previous • F to flag':'Use number keys 1–4 to answer • Space or Enter to continue';
   const bottom=document.querySelector('.quiz-bottom');
   if(bottom)bottom.style.display='flex';
+  const examControls=document.getElementById('examBottomControls');if(examControls)examControls.classList.remove('show');
   document.getElementById('modeLabel').textContent=modeTitle(session.mode);
   const blockBadge=document.getElementById('currentBlockBadge');
+  const examNav=document.getElementById('examNavigator');if(examNav&&!session?.mode?.startsWith('exam'))examNav.classList.remove('show');
   if(session.mode==='learn'){
     const info=learnBlockInfo();
     document.getElementById('learnStatusTop').textContent=`Mastery Block ${info.number} of ${info.total} • Confidence ${confidenceModeEnabled()?'ON':'OFF'}`;
     if(blockBadge){blockBadge.textContent=`Current Block ${info.number} of ${info.total}`;blockBadge.classList.add('show')}
   }else{
     document.getElementById('learnStatusTop').textContent=
-      session.mode.startsWith('exam')?'25 Core • 25 Type I • 25 Type II • 25 Type III':
+      session.mode.startsWith('exam')?`${EXAM_CATEGORIES[examSectionIndex()]} section • answers hidden until submission`:
       session.mode==='missed'?'Only questions missed on the previous attempt':'No-repeat randomized practice';
-    if(blockBadge){blockBadge.textContent='';blockBadge.classList.remove('show')}
+    if(blockBadge&&session.mode.startsWith('exam')){
+      blockBadge.textContent=`${EXAM_CATEGORIES[examSectionIndex()]} • Question ${(session.currentExamIndex%25)+1} of 25`;
+      blockBadge.classList.add('show');
+    }else if(blockBadge){blockBadge.textContent='';blockBadge.classList.remove('show')}
   }
+  renderExamStatus();
+  renderExamNavigator();
   renderSegments();
   if(session.completed){renderCompletion();return}
+  if(session.mode.startsWith('exam')&&session.sectionTransition){renderExamSectionTransition();return}
+  if(session.mode.startsWith('exam')&&session.examReviewScreen){renderExamReviewScreen();return}
   currentQuestion=questionById(session.currentId);
   if(!currentQuestion){advanceToQuestion();return}
   ensureChoiceOrder();
-  answerLocked=!!session.answerState;
+  answerLocked=session.mode.startsWith('exam')?false:!!session.answerState;
   document.getElementById('qCategory').textContent=`${currentQuestion.category} · ${currentQuestion.section||'EPA 608'}`;
   document.getElementById('qText').textContent=currentQuestion.question;
   document.getElementById('qCounter').textContent=questionPositionText();
   document.getElementById('learnStatus').className='learn-status';
-  document.getElementById('learnStatus').textContent='Choose an answer';
+  document.getElementById('learnStatus').textContent=session.mode.startsWith('exam')?(Number.isInteger(session.examAnswers[currentQuestion.id])?'Answer saved — you may change it before submitting.':'Choose an answer or flag this question for later review.'):'Choose an answer';
   const choices=document.getElementById('choices');
   choices.innerHTML='';
   session.choiceOrder.forEach((originalIndex,displayIndex)=>{
     const btn=document.createElement('button');
     btn.className='choice';
+    if(session.mode.startsWith('exam')&&session.examAnswers[currentQuestion.id]===originalIndex)btn.classList.add('exam-selected');
     btn.innerHTML=`<span class="choice-number">${displayIndex+1}</span>${escapeHTML(currentQuestion.choices[originalIndex])}`;
     btn.onclick=()=>answerChoice(displayIndex,btn);
     choices.appendChild(btn);
@@ -1585,18 +1967,21 @@ function renderSession(){
   explanation.style.display='none';
   explanation.innerHTML='';
   document.getElementById('nextBtn').style.display='none';
-  document.getElementById('dontKnowBtn').style.display='inline-block';
+  document.getElementById('dontKnowBtn').style.display=session.mode.startsWith('exam')?'none':'inline-block';
   document.getElementById('dontKnowBtn').disabled=false;
+  renderExamControls();
   const autosave=document.getElementById('autosaveStatus');
   autosave.textContent=storageAvailable()?'Autosave active':'Browser storage unavailable — export backups manually';
   autosave.style.color=storageAvailable()?'':'#ffd3d8';
-  if(session.answerState)applyAnswerState();
+  if(session.answerState&&!session.mode.startsWith('exam'))applyAnswerState();
 }
 function escapeHTML(value){
   return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
 }
 function answerChoice(displayIndex,button){
-  if(answerLocked||!session||!currentQuestion)return;
+  if(!session||!currentQuestion)return;
+  if(session.mode.startsWith('exam')){recordExamAnswer(displayIndex);return}
+  if(answerLocked)return;
   answerLocked=true;
   const originalIndex=displayIndex<0?-1:session.choiceOrder[displayIndex];
   const correct=originalIndex===currentQuestion.answer;
@@ -1802,6 +2187,23 @@ function renderCompletion(){
   }
 
   card.classList.remove('block-completion-card');
+  if(isExam){
+    stopExamTimer();
+    const result=session.examResult||computeExamResults(session);
+    const sectionCards=EXAM_CATEGORIES.map(category=>{
+      const item=result.sections[category];
+      return `<div class="exam-result-section ${item.passed?'pass':''}"><h4>${escapeHTML(category)}</h4><b>${item.correct}/25</b><span>${item.passed?'PASSED':'NOT PASSED'} • ${Math.round(item.correct/25*100)}%</span></div>`;
+    }).join('');
+    let certificationMessage='';
+    if(result.universal)certificationMessage='Congratulations! You passed all four practice sections at the Universal level. Official EPA Section 608 certification still requires passing an approved proctored exam.';
+    else if(!result.corePassed)certificationMessage='No EPA Section 608 certification was earned because the mandatory Core section was not passed.';
+    else if(result.passedTypes.length)certificationMessage=`You passed Core and the ${result.passedTypes.join(', ')} practice section${result.passedTypes.length===1?'':'s'}. Official certification requires an approved proctored exam.`;
+    else certificationMessage='You passed the Core practice section, but no specialty section was passed, so this attempt does not reach a Type certification level.';
+    if(keyboardHint)keyboardHint.textContent=missedCount?'Review missed questions or take the missed-question mini exam':'Exam complete';
+    card.innerHTML=`<div class="completion-box"><div class="completion-icon">${result.universal?'✓':'⚑'}</div><h2>${result.universal?'Universal exam passed':'Exam results'}</h2><p>${escapeHTML(certificationMessage)}${session.autoSubmitted?' The three-hour time window expired, so the exam was submitted automatically.':''}</p><div class="exam-section-results">${sectionCards}</div><p>You answered ${result.score} of 100 questions correctly (${result.score}%). The passing requirement is 18 of 25 in each section.</p>${missedReviewHTML()}<div class="completion-actions">${missedCount?`<button class="btn primary" onclick="startMissedExam()">Take Missed-Question Mini Exam (${missedCount})</button>`:''}<button class="btn" onclick="restartExam(${session.examNumber})">Restart Full Exam</button><button class="btn" onclick="finishAndGoHome()">Return Home</button></div></div>`;
+    renderExamStatus();renderExamNavigator();
+    return;
+  }
   if(keyboardHint)keyboardHint.textContent=missedCount
     ?'Review every flagged question below or take the missed-question mini exam'
     :'Practice complete • No missed questions remain';
@@ -1825,6 +2227,7 @@ function restoreQuizCardMarkup(){
   card.classList.remove('block-completion-card');
   const bottom=document.querySelector('.quiz-bottom');
   if(bottom)bottom.style.display='flex';
+  const examControls=document.getElementById('examBottomControls');if(examControls)examControls.classList.remove('show');
   if(document.getElementById('qText'))return;
   card.innerHTML=`
     <div class="term-label">Question <span id="qCategory"></span></div>
@@ -1850,7 +2253,8 @@ function restartExam(number){
   restoreQuizCardMarkup();
   session=createFixedExamSession(number,0);
   showSection('quiz');
-  advanceToQuestion();
+  if(session.completed)return;
+  goToExamQuestion(0,{skipRestore:true});
 }
 function finishAndGoHome(){
   const finishedMode=session?.mode;
@@ -1975,7 +2379,7 @@ function updateManualControls(preserveBlock=false){
   options.style.display=isLearn?'flex':'none';
   help.textContent=isLearn
     ?'Choose any mastery block and exact question. The optional checkbox reconstructs your prior location by marking every earlier selected question mastered.'
-    :'Choose any exact exam position. A manual exam resume scores only the remaining questions because earlier answers cannot be reconstructed after data loss.';
+    :'Choose any starting position in the 100-question exam. Every question remains available through Previous, Next, and the question map; unanswered questions are scored incorrect at submission.';
   updateManualQuestions();
 }
 function updateManualQuestions(){
@@ -2088,7 +2492,15 @@ document.addEventListener('keydown',event=>{
   if(typing)return;
   const quizActive=document.getElementById('quiz').classList.contains('active');
   if(!quizActive)return;
-  if(event.repeat&&(event.code==='Space'||event.key==='Enter'))return;
+  if(event.repeat&&(event.code==='Space'||event.key==='Enter'||event.key==='ArrowRight'||event.key==='ArrowLeft'))return;
+  if(session?.mode?.startsWith('exam')&&!session.completed){
+    if(session.sectionTransition&&(event.code==='Space'||event.key==='Enter'||event.key==='ArrowRight')){event.preventDefault();continueExamSection();return}
+    if(!session.examReviewScreen&&!session.sectionTransition){
+      if(event.code==='Space'||event.key==='Enter'||event.key==='ArrowRight'){event.preventDefault();examNext();return}
+      if(event.key==='ArrowLeft'){event.preventDefault();examPrevious();return}
+      if(event.key.toLowerCase()==='f'){event.preventDefault();toggleExamFlag();return}
+    }
+  }
   if(event.code==='Space'&&session?.completed&&session.mode==='learn'&&hasMoreLearnQuestions()){
     event.preventDefault();
     startNextBlock();
